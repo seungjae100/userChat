@@ -44,15 +44,16 @@ public class UserControllerTest {
         user.setEmail("test@gmail.com");
         user.setPassword("123456");
 
-        // When & Then
+        // When
 
-        mockMvc.perform(post("/api/users/register")
+        var resultActions = mockMvc.perform(post("/api/users/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(user))
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())) // CSRF 토큰 추가
-                .andExpect(status().isOk())
-                .andExpect(content().string("회원가입이 완료되었습니다."));
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())); // CSRF 토큰 추가
 
+        // Then
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().string("회원가입이 완료되었습니다."));
     }
 
     @Test
@@ -65,18 +66,19 @@ public class UserControllerTest {
         user.setPassword("123456");
         userRepository.save(user); // 중복 이메일 사용자 저장
 
-
         User user2 = new User();
         user2.setUsername("tester2");
         user2.setEmail("test@gmail.com");
         user2.setPassword("123456");
 
-        // When & Then
-        mockMvc.perform(post("/api/users/register")
+        // When
+        var resultActions = mockMvc.perform(post("/api/users/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(user2))
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())) // CSRF 토큰 추가
-                .andExpect(status().isBadRequest())
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())); // CSRF 토큰 추가
+
+        // Then
+        resultActions.andExpect(status().isBadRequest())
                 .andExpect(content().string("이미 사용중인 이메일입니다."));
 
     }
