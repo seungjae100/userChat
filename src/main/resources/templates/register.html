@@ -2,12 +2,29 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Title</title>
-<!--    <link rel="stylesheet" href="styles.css">-->
+    <title>회원가입</title>
+    <link rel="stylesheet" href="register.css">
 </head>
 <body>
-
-<!--<script src="script.js"></script>-->
+    <div class="registerForm">
+        <h1>회원가입</h1>
+        <form th:action="@{/api/users/register}" method="post">
+            <div class="userEmail">
+                <label>이메일</label>
+                <input type="email" id="email" name="email" placeholder="이메일을 입력하세요" required>
+            </div>
+            <div class="userName">
+                <label>이름</label>
+                <input type="text" id="username" name="username" placeholder="이름을 입력하세요" required>
+            </div>
+            <div class="password">
+                <label>비밀번호</label>
+                <input type="password" id="password" name="password" placeholder="비밀번호을 입력하세요" required>
+            </div>
+            <button type="submit" class="btn">회원가입</button>
+        </form>
+    </div>
 </body>
 </html>

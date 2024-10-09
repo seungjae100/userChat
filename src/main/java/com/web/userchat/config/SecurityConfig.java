@@ -21,14 +21,13 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @SuppressWarnings("removal")
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests()
-                .requestMatchers("/api/users/register").permitAll() // 회원가입 엔드포인트는 인증 없이 허용
+                .authorizeRequests()
+                .requestMatchers("/users/register").permitAll() // 회원가입 엔드포인트는 인증 없이 사용
                 .anyRequest().authenticated(); // 나머지 요청은 인증 필요
-
         return http.build();
     }
 }
