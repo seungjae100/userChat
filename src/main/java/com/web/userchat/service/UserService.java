@@ -49,12 +49,15 @@ public class UserService {
         return cookie;
     }
 
-    public String login(String email, String password) {
+    public Cookie login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다."));
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return jwtUtil.generateAccessToken(user.getEmail());
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
-        throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
+
+        String accessToken = jwtUtil.generateAccessToken(user.getEmail());
+        return createCookie("accessToken", accessToken, 60 * 60); // 1 시간 유효
     }
 }

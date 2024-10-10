@@ -78,4 +78,41 @@ class UserServiceTest {
 
         assertEquals("이미 사용중인 이메일입니다.", exception.getMessage());
     }
+
+    @Test
+    @DisplayName("로그인 성공 테스트")
+    void login_Success() {
+        // Given
+        User user = new User();
+        user.setUsername("test");
+        user.setEmail("test@gmail.com");
+        user.setPassword("123456");
+        userService.register(user); // 회원가입
+
+        // When
+        Cookie accessTokenCookie = userService.login("test@gmail.com", "123456");
+
+        // Then
+        assertNotNull(accessTokenCookie, "로그인 시 Access 토큰 쿠키가 반환되어야 합니다.");
+        assertEquals("accessToken", accessTokenCookie.getName(), "쿠키의 이름은 accessToken이여야 합니다.");
+        assertTrue(jwtUtil.validateToken(accessTokenCookie.getValue(), "test@gmail.com"), "생성된 토큰은 유효해야 합니다.");
+    }
+
+    @Test
+    @DisplayName("로그인 실패 테스트 - 잘못된 비밀번호")
+    void login_Fail_WrongPassword() {
+        // Given
+        User user = new User();
+        user.setUsername("test");
+        user.setEmail("test@gmail.com");
+        user.setPassword("123456");
+        userService.register(user); // 회원가입
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.login("test@gmail.com", "wrongPassword");
+        }, "잘못된 비밀번호로 로그인 시 예외가 발생해야 합니다.");
+
+        assertEquals("이메일 또는 비밀번호가 올바르지 않습니다.", exception.getMessage());
+    }
 }
