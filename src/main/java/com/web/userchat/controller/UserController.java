@@ -1,5 +1,6 @@
 package com.web.userchat.controller;
 
+import com.web.userchat.dto.LoginDTO;
 import com.web.userchat.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,6 +36,24 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             return "register";
+        }
+    }
+
+    @GetMapping("/login")
+    public String loginForm(Model model) {
+        model.addAttribute("LoginDTO", new LoginDTO());
+        return "login";
+    }
+
+    @PostMapping("/login")
+    public String login(@Valid @RequestBody LoginDTO loginDTO, HttpServletResponse response, Model model) {
+        try {
+            Cookie accessTokenCookie = userService.login(loginDTO.getEmail(), loginDTO.getPassword());
+            response.addCookie(accessTokenCookie);
+            return "redirect:/users/home";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+            return "login";
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.web.userchat.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.web.userchat.dto.LoginDTO;
 import com.web.userchat.model.User;
 import com.web.userchat.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
@@ -11,11 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -30,6 +33,9 @@ public class UserControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setup() {
@@ -98,5 +104,56 @@ public class UserControllerTest {
                 .andExpect(status().isOk()) // 실패 시, 다시 폼으로 돌아오기 때문에 200 OK
                 .andExpect(model().attributeExists("error")) // 에러 메시지가 모델에 포함되어 있는지 확인
                 .andExpect(model().attribute("error", "이미 사용중인 이메일입니다."));
+    }
+
+    @Test
+    @DisplayName("로그인 성공 테스트")
+    void loginUser_success() throws Exception {
+        // Given
+        User user = new User();
+        user.setUsername("tester");
+        user.setEmail("test@gmail.com");
+        user.setPassword(passwordEncoder.encode("123456"));
+        userRepository.save(user);
+
+        LoginDTO loginDTO = new LoginDTO("test@gmail.com", "123456");
+        String jsonContent = objectMapper.writeValueAsString(loginDTO);
+
+        // When
+        var resultActions = mockMvc.perform(post("/users/login")
+                .contentType(MediaType.APPLICATION_JSON) // JSON 형식으로 변경
+                .content(objectMapper.writeValueAsString(loginDTO)) // 객체를 JSON으로 변환
+                .with(SecurityMockMvcRequestPostProcessors.csrf())); // CSRF 토큰 추가
+
+        // Then
+        resultActions.andExpect(status().is3xxRedirection()) // 로그인 성공 시 리다이렉트 확인
+                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("accessToken"))) // AccessToken 쿠키가 있어야함
+                .andExpect(redirectedUrl("/users/home")) // 로그인 후 리다이렉트되는 URL 확인
+                .andDo(print()); // 실제 응답을 콘솔에 출력하여 검토
+    }
+
+    @Test
+    @DisplayName("로그인 실패 테스트 - 잘못된 비밀번호")
+    void loginUser_fail_wrongPassword() throws Exception {
+        // Given
+        User user = new User();
+        user.setUsername("tester");
+        user.setEmail("test@gmail.com");
+        user.setPassword("123456");
+        userRepository.save(user);
+
+        LoginDTO loginDTO = new LoginDTO("test@gmail.com", "wrongpassword");
+
+        // When
+        var resultActions = mockMvc.perform(post("/users/login")
+                .contentType(MediaType.APPLICATION_JSON) // JSON 형식으로 변경
+                .content(objectMapper.writeValueAsString(loginDTO)) // 객체를 JSON으로 변환
+                .with(SecurityMockMvcRequestPostProcessors.csrf())); // CSRF 토큰 추가
+
+        // Then
+        resultActions.andExpect(status().isOk()) // 로그인 실패 시 다시 로그인 페이지로 돌아오기 때문에
+                .andExpect(model().attributeExists("error")) // 에러 메세지가 모델에 포함되어야 함
+                .andExpect(view().name("login")) // 실패 시 로그인 페이지로 다시 리턴
+                .andDo(print());
     }
 }
