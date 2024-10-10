@@ -10,7 +10,12 @@
 <body>
     <div class="registerForm">
         <h1>회원가입</h1>
-        <form th:action="@{/api/users/register}" method="post">
+
+        <!-- 성공, 에러메시지 작성 -->
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+        <div class="success" th:if="${success}" th:text="${success}"></div>
+
+        <form th:action="@{/users/register}" method="post">
             <div class="userEmail">
                 <label>이메일</label>
                 <input type="email" id="email" name="email" placeholder="이메일을 입력하세요" required>

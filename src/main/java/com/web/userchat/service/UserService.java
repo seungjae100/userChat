@@ -2,7 +2,12 @@ package com.web.userchat.service;
 
 import com.web.userchat.model.User;
 import com.web.userchat.repository.UserRepository;
+import com.web.userchat.util.JwtUtil;
+import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,17 +20,41 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public String register(User user) {
-        // 이메일 중복 검사
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    public Cookie[] register(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return "이미 사용중인 이메일입니다.";
+            throw new IllegalArgumentException("이미 사용중인 이메일입니다.");
         }
 
-        // 비밀번호 암호화
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // 사용자 저장
         userRepository.save(user);
-        return "회원가입이 완료되었습니다.";
+
+        String accessToken = jwtUtil.generateAccessToken(user.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
+
+        Cookie accessTokenCookie = createCookie("accessToken", accessToken, 60 * 60);
+        Cookie refreshTokenCookie = createCookie("refreshToken", refreshToken, 7 * 24 * 60 * 60);
+
+        return new Cookie[]{accessTokenCookie, refreshTokenCookie};
+    }
+
+    private Cookie createCookie(String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        return cookie;
+    }
+
+    public String login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다."));
+        if (passwordEncoder.matches(password, user.getPassword())) {
+            return jwtUtil.generateAccessToken(user.getEmail());
+        }
+        throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
 }
