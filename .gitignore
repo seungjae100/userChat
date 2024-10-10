@@ -17,10 +17,10 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### code ###
-src/main/resources/application.properties
 
 ### IntelliJ IDEA ###
+application.properties
+
 .idea
 *.iws
 *.iml
