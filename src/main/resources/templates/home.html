@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홈 화면</title>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="user-link">
+                <a th:if="${#authentication == null}" th:href="@{/users/login}" id="login-link">로그인</a>
+                <a th:if="${#authentication == null}" th:href="@{/users/register}" id="register-link">회원가입</a>
+                <form th:if="${#authentication != null}" th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" id="logout-button">로그아웃</button>
+                </form>
+            </div>
+        </div>
+    </header>
+    <main class="main-content">
+        <div class="chatting">
+            <button th:if="${#authentication != null}" th:onclick="|location.href='@{/chat}'|" id="chat-button">
+                채팅 참여하기
+            </button>
+        </div>
+    </main>
+<script th:src="@{/js/home}"></script>
+</body>
+</html>

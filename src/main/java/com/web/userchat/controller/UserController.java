@@ -12,19 +12,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/users")
+@RequestMapping
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @GetMapping("/register")
+    @GetMapping("/users/register")
     public String registerForm(Model model) {
         model.addAttribute("user", new User());
         return "register";
     }
 
-    @PostMapping("/register")
+    @PostMapping("/users/register")
     public String register(@Valid @ModelAttribute User user, HttpServletResponse response, Model model) {
         try {
             Cookie[] cookies = userService.register(user);
@@ -39,18 +39,23 @@ public class UserController {
         }
     }
 
-    @GetMapping("/login")
+    @GetMapping("/users/login")
     public String loginForm(Model model) {
         model.addAttribute("LoginDTO", new LoginDTO());
         return "login";
     }
 
-    @PostMapping("/login")
-    public String login(@Valid @RequestBody LoginDTO loginDTO, HttpServletResponse response, Model model) {
+    @PostMapping("/users/login")
+    public String login(@Valid @ModelAttribute LoginDTO loginDTO, HttpServletResponse response, Model model) {
         try {
-            Cookie accessTokenCookie = userService.login(loginDTO.getEmail(), loginDTO.getPassword());
-            response.addCookie(accessTokenCookie);
-            return "redirect:/users/home";
+            // UserService 에서 로그인 처리 후 쿠키 배열을 반환받음 (Access Token과 Refresh Token)
+            Cookie[] cookies = userService.login(loginDTO.getEmail(), loginDTO.getPassword());
+            // 모든 쿠키를 응답에 추가
+            for (Cookie cookie : cookies) {
+                response.addCookie(cookie);
+            }
+
+            return "redirect:/";
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             return "login";

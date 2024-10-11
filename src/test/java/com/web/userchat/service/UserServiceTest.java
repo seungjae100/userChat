@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class UserServiceTest {
@@ -90,7 +92,11 @@ class UserServiceTest {
         userService.register(user); // 회원가입
 
         // When
-        Cookie accessTokenCookie = userService.login("test@gmail.com", "123456");
+        Cookie[] cookies = userService.login("test@gmail.com", "123456");
+
+        Cookie accessTokenCookie = Arrays.stream(cookies)
+                .filter(cookie -> "accessToken".equals(cookie.getName()))
+                        .findFirst().orElse(null);
 
         // Then
         assertNotNull(accessTokenCookie, "로그인 시 Access 토큰 쿠키가 반환되어야 합니다.");
