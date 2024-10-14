@@ -61,7 +61,7 @@ public class UserService {
     // 쿠키를 생성하는 메서드
     private Cookie createCookie(String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(true);
+        cookie.setHttpOnly(false);
         cookie.setSecure(false); // HTTP 테스트 시 false, HTTPS 환경에서는 true 로 설정
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);

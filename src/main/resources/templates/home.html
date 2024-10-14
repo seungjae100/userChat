@@ -8,24 +8,22 @@
     <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 <body>
-    <header class="header">
-        <div class="container">
-            <div class="user-link">
-                <a th:if="${#authentication == null}" th:href="@{/users/login}" id="login-link">로그인</a>
-                <a th:if="${#authentication == null}" th:href="@{/users/register}" id="register-link">회원가입</a>
-                <form th:if="${#authentication != null}" th:action="@{/logout}" method="post" style="display: inline;">
-                    <button type="submit" id="logout-button">로그아웃</button>
-                </form>
-            </div>
+<header class="header">
+    <div class="container">
+        <div class="user-link">
+            <a href="/users/login" id="login-link" style="display: none;">로그인</a>
+            <a href="/users/register" id="register-link" style="display: none;">회원가입</a>
+            <form id="logout-button" action="/logout" method="post" style="display: none;">
+                <button type="submit">로그아웃</button>
+            </form>
         </div>
-    </header>
-    <main class="main-content">
-        <div class="chatting">
-            <button th:if="${#authentication != null}" th:onclick="|location.href='@{/chat}'|" id="chat-button">
-                채팅 참여하기
-            </button>
-        </div>
-    </main>
-<script th:src="@{/js/home}"></script>
+    </div>
+</header>
+<main class="main-content">
+    <div class="chatting">
+        <button id="chat-button" style="display: none;" onclick="location.href='/chat'">채팅 참여하기</button>
+    </div>
+</main>
+<script th:src="@{/js/home.js}"></script>
 </body>
 </html>
