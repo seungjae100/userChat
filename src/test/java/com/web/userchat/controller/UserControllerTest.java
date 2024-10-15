@@ -116,19 +116,16 @@ public class UserControllerTest {
         user.setPassword(passwordEncoder.encode("123456"));
         userRepository.save(user);
 
-        LoginDTO loginDTO = new LoginDTO("test@gmail.com", "123456");
-        String jsonContent = objectMapper.writeValueAsString(loginDTO);
-
         // When
         var resultActions = mockMvc.perform(post("/users/login")
-                .contentType(MediaType.APPLICATION_JSON) // JSON 형식으로 변경
-                .content(objectMapper.writeValueAsString(loginDTO)) // 객체를 JSON으로 변환
+                .param("email", "test@gmail.com") // 폼 데이터로 전송
+                .param("password", "123456") // 폼 데이터로 전송
                 .with(SecurityMockMvcRequestPostProcessors.csrf())); // CSRF 토큰 추가
 
         // Then
         resultActions.andExpect(status().is3xxRedirection()) // 로그인 성공 시 리다이렉트 확인
-                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("accessToken"))) // AccessToken 쿠키가 있어야함
-                .andExpect(redirectedUrl("/users/home")) // 로그인 후 리다이렉트되는 URL 확인
+                .andExpect(cookie().exists("accessToken")) // AccessToken 쿠키가 있어야 함
+                .andExpect(redirectedUrl("/")) // 로그인 후 리다이렉트되는 URL 확인
                 .andDo(print()); // 실제 응답을 콘솔에 출력하여 검토
     }
 
@@ -139,20 +136,18 @@ public class UserControllerTest {
         User user = new User();
         user.setUsername("tester");
         user.setEmail("test@gmail.com");
-        user.setPassword("123456");
+        user.setPassword(passwordEncoder.encode("123456")); // 암호화된 비밀번호 저장
         userRepository.save(user);
-
-        LoginDTO loginDTO = new LoginDTO("test@gmail.com", "wrongpassword");
 
         // When
         var resultActions = mockMvc.perform(post("/users/login")
-                .contentType(MediaType.APPLICATION_JSON) // JSON 형식으로 변경
-                .content(objectMapper.writeValueAsString(loginDTO)) // 객체를 JSON으로 변환
+                .param("email", "test@gmail.com") // 폼 데이터로 전송
+                .param("password", "wrongpassword") // 폼 데이터로 전송
                 .with(SecurityMockMvcRequestPostProcessors.csrf())); // CSRF 토큰 추가
 
         // Then
-        resultActions.andExpect(status().isOk()) // 로그인 실패 시 다시 로그인 페이지로 돌아오기 때문에
-                .andExpect(model().attributeExists("error")) // 에러 메세지가 모델에 포함되어야 함
+        resultActions.andExpect(status().isOk()) // 로그인 실패 시 다시 로그인 페이지로 돌아오기 때문에 200 OK
+                .andExpect(model().attributeExists("error")) // 에러 메시지가 모델에 포함되어 있는지 확인
                 .andExpect(view().name("login")) // 실패 시 로그인 페이지로 다시 리턴
                 .andDo(print());
     }
