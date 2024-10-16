@@ -43,7 +43,7 @@ public class ChatController {
     @MessageMapping("/chat.sendMessage/{chattingRoomId}")
     @SendTo("/topic/{chattingRoomId}")
     public ChatMessage sendMessage(@PathVariable String chattingRoomId, @Payload ChatMessage chatMessage) {
-        chatMessage.setChatroomId(chattingRoomId); // 채팅룸 아이디 저장
+        chatMessage.setChattingRoomId(chattingRoomId); // 채팅룸 아이디 저장
         chatService.saveMessage(chatMessage); // 메세지 저장
         return chatMessage;
     }
