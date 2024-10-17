@@ -1,6 +1,5 @@
 package com.web.userchat.config;
 
-import org.springframework.boot.autoconfigure.websocket.servlet.WebSocketMessagingAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -13,7 +12,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/queue"); // 클라이언트에 메세지를 전달하기 위한 브로커 설정
+        config.enableSimpleBroker("/topic"); // 클라이언트에 메세지를 전달하기 위한 브로커 설정
         config.setApplicationDestinationPrefixes("/app"); // 클라이언트가 메세지를 보낼 때 사용할 prefix
     }
 
