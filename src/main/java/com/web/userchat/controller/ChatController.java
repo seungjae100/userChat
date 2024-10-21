@@ -3,16 +3,20 @@ package com.web.userchat.controller;
 import com.web.userchat.dto.ChattingRoomDTO;
 import com.web.userchat.model.ChatMessage;
 import com.web.userchat.model.User;
+import com.web.userchat.repository.UserRepository;
 import com.web.userchat.service.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Set;
 
@@ -21,23 +25,34 @@ public class ChatController {
 
     @Autowired
     private ChatService chatService;
+    @Autowired
+    private UserRepository userRepository;
 
-    @GetMapping("/users")
-    public String getAllUsers(Model model) {
-        List<User> allUsers = chatService.getAllUsers();
+    @GetMapping("/chatRoom")
+    public String getAllUsers(Principal principal, Model model) {
+        String currentEmail = principal.getName();
+        User currentUser = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        String currentUsername = currentUser.getUsername();
+        chatService.loginUser(currentUsername); // 로그인 시 사용자 온라인 설정
+
+        List<User> allUsers = chatService.getAllUsersExceptCurrentUser(currentUsername);
         Set<String> onlineUsers = chatService.getOnlineUsers();
+
 
         model.addAttribute("allUsers", allUsers);
         model.addAttribute("onlineUsers", onlineUsers);
-        return "userList"; // 유저 목록 페이지 html
+        model.addAttribute("currentUser", currentUsername);
+        return "chatRoom"; // 유저 목록 페이지 html
     }
 
-    @GetMapping("/chat/{user1}/{user2}")
+    @GetMapping("/chatRoom/{user1}/{user2}")
     public String getChattingRoom(@PathVariable String user1, @PathVariable String user2, Model model) {
         ChattingRoomDTO chattingRoomDTO = chatService.createChattingRoom(user1, user2);
         model.addAttribute("chattingRoomDTO", chattingRoomDTO);
         model.addAttribute("messages", chatService.getChatMessages(chattingRoomDTO.getChattingRoomId()));
-        return "chattingRoom";
+        return "chatRoom";
     }
 
     @MessageMapping("/chat.sendMessage/{chattingRoomId}")

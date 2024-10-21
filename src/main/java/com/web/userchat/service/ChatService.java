@@ -26,10 +26,13 @@ public class ChatService {
         this.userRepository = userRepository;
     }
 
-    // 전체 유저 목록 가져오기 (DB 에서 조회)
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    // 전체 유저 목록 가져오기 (로그인한 사용자 제외)
+    public List<User> getAllUsersExceptCurrentUser(String currentUsername) {
+        List<User> allUsers = userRepository.findAll();
+        allUsers.removeIf(user -> user.getUsername().equals(currentUsername));
+        return allUsers;
     }
+
 
     // 특정 두 유저간의 채팅방을 생성하거나 이미 존재하는 경우 찾는 메서드
     public ChattingRoomDTO createChattingRoom(String user1, String user2) {
@@ -57,6 +60,11 @@ public class ChatService {
     // 특정 채팅방의 메세지 가져오기 (DB 에서 조회)
     public List<ChatMessage> getChatMessages(String chattingRoomId) {
         return chatMessageRepository.findByChattingRoomId(chattingRoomId);
+    }
+
+    // 로그인 시 사용자를 온라인 상태로 설정
+    public void loginUser(String username) {
+        addUser(username);
     }
 
     // 접속 유저 관리
