@@ -11,17 +11,20 @@
 <div class="chat-container">
     <!-- 사용자 목록 -->
     <div class="user-list">
-        <input type="text" placeholder="유저이름을 입력하세요" class="search-box">
+        <form method="get" action="/users/search">
+            <input type="text" name="query" placeholder="유저이름을 입력하세요" class="search-box">
+            <button type="submit">검색</button>
+        </form>
         <ul>
             <!-- 현재 사용자 정보 표시 ( 맨 위 고정 ) -->
             <li class="user-item">
-                <span class="username" th:text="${currentUser}"></span>
-                <span th:if="${#lists.contains(onlineUsers, currentUser)}" class="status-online">온라인</span>
-                <span th:if="${!#lists.contains(onlineUsers, currentUser)}" class="status-offline">오프라인</span>
+                <span class="username" th:text="${currentUser.username}"></span>
+                <span th:if="${#lists.contains(onlineUsers, currentUser.username)}" class="status-online">온라인</span>
+                <span th:if="${!#lists.contains(onlineUsers, currentUser.username)}" class="status-offline">오프라인</span>
                 <a href="/userModify" class="profile-edit-list-link">...</a>
             </li>
             <!-- 나머지 사용자 목록 -->
-            <li th:each="user : ${allUsers}" th:if="${user.username != currentUser}" class="user-item">
+            <li th:each="user : ${allUsers}" class="user-item">
                 <span class="username" th:text="${user.username}"></span>
                 <span th:if="${#lists.contains(onlineUsers, user.username)}" class="status-online">온라인</span>
                 <span th:if="${!#lists.contains(onlineUsers, user.username)}" class="status-offline">오프라인</span>

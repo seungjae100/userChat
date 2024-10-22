@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatService {
@@ -31,6 +32,19 @@ public class ChatService {
         List<User> allUsers = userRepository.findAll();
         allUsers.removeIf(user -> user.getUsername().equals(currentUsername));
         return allUsers;
+    }
+
+    // 유저 검색 로직
+    public List<User> searchUsers(String username, String currentUsername) {
+        if (username == null || username.isEmpty()) {
+            return userRepository.findAll().stream()
+                    .filter(user -> !user.getUsername().equals(currentUsername))
+                    .collect(Collectors.toList());
+        }
+        return userRepository.findByUsernameContaining(username).stream()
+                .filter(user -> !user.getUsername().equals(currentUsername))
+                .collect(Collectors.toList());
+
     }
 
 

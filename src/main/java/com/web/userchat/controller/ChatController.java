@@ -9,15 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Controller
@@ -43,7 +43,7 @@ public class ChatController {
 
         model.addAttribute("allUsers", allUsers);
         model.addAttribute("onlineUsers", onlineUsers);
-        model.addAttribute("currentUser", currentUsername);
+        model.addAttribute("currentUser", currentUser);
         return "chatRoom"; // 유저 목록 페이지 html
     }
 
@@ -62,6 +62,30 @@ public class ChatController {
         chatService.saveMessage(chatMessage); // 메세지 저장
         return chatMessage;
     }
+
+    @GetMapping("/users/search")
+    public String searchUsers(@RequestParam("query") String query, Principal principal, Model model) {
+        // 현재 사용자 이메일을 가져옴
+        String currentEmail = principal.getName();
+        User currentUser = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        String currentUsername = currentUser.getUsername();
+
+        // 검색어에 따른 사용자 목록 가져오기
+        List<User> searchResults = userRepository.findByUsernameContaining(query);
+        // 현재 로그인한 사용자는 검색 결과에서 제외
+        searchResults.removeIf(user -> user.getUsername().equals(currentUsername));
+
+        // 모델에 필요한 정보 추가
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("allUsers", searchResults);
+        model.addAttribute("onlineUsers", chatService.getOnlineUsers());
+
+        return "chatRoom"; // 유저 목록 페이지 html
+    }
+
+
 
 
 }
