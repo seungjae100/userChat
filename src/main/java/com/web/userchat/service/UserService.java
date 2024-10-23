@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
 
@@ -66,5 +68,12 @@ public class UserService {
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         return cookie;
+    }
+
+    public void logoutUser(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+        }
     }
 }

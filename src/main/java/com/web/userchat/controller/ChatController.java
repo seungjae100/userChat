@@ -6,14 +6,13 @@ import com.web.userchat.model.User;
 import com.web.userchat.repository.UserRepository;
 import com.web.userchat.service.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
@@ -43,16 +42,24 @@ public class ChatController {
 
         model.addAttribute("allUsers", allUsers);
         model.addAttribute("onlineUsers", onlineUsers);
-        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("currentUsername", currentUsername);
+        model.addAttribute("currentEmail", currentEmail);
         return "chatRoom"; // 유저 목록 페이지 html
     }
 
-    @GetMapping("/chatRoom/{user1}/{user2}")
-    public String getChattingRoom(@PathVariable String user1, @PathVariable String user2, Model model) {
-        ChattingRoomDTO chattingRoomDTO = chatService.createChattingRoom(user1, user2);
-        model.addAttribute("chattingRoomDTO", chattingRoomDTO);
-        model.addAttribute("messages", chatService.getChatMessages(chattingRoomDTO.getChattingRoomId()));
-        return "chatRoom";
+    @GetMapping("/api/chat/{chattingRoomId}")
+    public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable String chattingRoomId) {
+        List<ChatMessage> messages = chatService.getChatMessages(chattingRoomId);
+        return ResponseEntity.ok(messages);
+    }
+
+    @PostMapping("/api/chat/send")
+    public ResponseEntity<ChatMessage> sendMessage(@RequestBody ChatMessage chatMessage) {
+        // 채팅 메세지를 저장
+        chatService.saveMessage(chatMessage);
+
+        // 저장된 메세지를 응답으로 반환
+        return ResponseEntity.ok(chatMessage);
     }
 
     @MessageMapping("/chat.sendMessage/{chattingRoomId}")

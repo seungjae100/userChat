@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -16,7 +17,7 @@ public class ChatService {
 
     // 채팅방 저장소
     private final Map<String, ChattingRoomDTO> chatRoom = new HashMap<>(); // 채팅방 DTO
-    private final Set<String> onlineUsers = Collections.synchronizedSet(new HashSet<>());
+    private final Set<String> onlineUsers = ConcurrentHashMap.newKeySet();
     private final ChatMessageRepository chatMessageRepository;
 
     @Autowired
@@ -79,6 +80,10 @@ public class ChatService {
     // 로그인 시 사용자를 온라인 상태로 설정
     public void loginUser(String username) {
         addUser(username);
+    }
+
+    public void logoutUser(String username) {
+        onlineUsers.remove(username);
     }
 
     // 접속 유저 관리
