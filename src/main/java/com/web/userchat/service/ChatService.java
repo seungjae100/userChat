@@ -7,6 +7,8 @@ import com.web.userchat.repository.ChatMessageRepository;
 import com.web.userchat.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.apache.commons.codec.digest.DigestUtils;
+
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,10 +63,11 @@ public class ChatService {
     }
 
     // 특정 패턴으로 채팅방 ID 생성 ( 두 유저들의 이름을 이용한 아이디 생성 )
-    private String generateRoomId(String user1, String user2) {
+    public String generateRoomId(String user1, String user2) {
         List<String> users = Arrays.asList(user1, user2);
-        Collections.sort(users);
-        return String.join("_", users);
+        Collections.sort(users); // 항상 같은 순서로 정렬
+        String concatenateIds = String.join("_", users);
+        return DigestUtils.sha256Hex(concatenateIds);
     }
 
     // 메세지 저장 (DB)

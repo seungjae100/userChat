@@ -15,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -37,7 +38,7 @@ public class ChatController {
         chatService.loginUser(currentUsername); // 로그인 시 사용자 온라인 설정
 
         List<User> allUsers = chatService.getAllUsersExceptCurrentUser(currentUsername);
-        Set<String> onlineUsers = chatService.getOnlineUsers();
+        Set<String> onlineUsers = Optional.ofNullable(chatService.getOnlineUsers()).orElse(Collections.emptySet());
 
 
         model.addAttribute("allUsers", allUsers);
@@ -45,6 +46,21 @@ public class ChatController {
         model.addAttribute("currentUsername", currentUsername);
         model.addAttribute("currentEmail", currentEmail);
         return "chatRoom"; // 유저 목록 페이지 html
+    }
+
+    @GetMapping("/chatRoom/{user1}/{user2}")
+    public String getChattingRoom(@PathVariable String user1, @PathVariable String user2, Model model) {
+        User userOne = userRepository.findByUsername(user1).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User userTwo = userRepository.findByUsername(user2).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 채팅방 아이디 생성
+        String chatRoomId = chatService.generateRoomId(userOne.getUsername(), userTwo.getUsername());
+        ChattingRoomDTO chattingRoomDTO = chatService.createChattingRoom(userOne.getUsername(), userTwo.getUsername());
+
+        model.addAttribute("chattingRoomDTO", chattingRoomDTO);
+        model.addAttribute("message", chatService.getChatMessages(chatRoomId));
+
+        return "chatRoom";
     }
 
     @GetMapping("/api/chat/{chattingRoomId}")
@@ -91,8 +107,5 @@ public class ChatController {
 
         return "chatRoom"; // 유저 목록 페이지 html
     }
-
-
-
 
 }
