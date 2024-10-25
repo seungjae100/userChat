@@ -50,24 +50,17 @@ public class ChatService {
 
     }
 
-
-    // 특정 두 유저간의 채팅방을 생성하거나 이미 존재하는 경우 찾는 메서드
-    public ChattingRoomDTO createChattingRoom(String user1, String user2) {
-        String chattingRoomId = generateRoomId(user1, user2);
-        if (!chatRoom.containsKey(chattingRoomId)) {
-            ChattingRoomDTO newRoom = ChattingRoomDTO.create(user1 + " and " + user2);
-            newRoom.setChattingRoomId(chattingRoomId);
-            chatRoom.put(chattingRoomId, newRoom);
-        }
-        return chatRoom.get(chattingRoomId);
+    // 채팅방을 고유한 ID 로 생성하고 저장하거나 이미 존재하는 경우 찾는 메서드
+    public ChattingRoomDTO createChattingRoom(String chattingRoomName) {
+        ChattingRoomDTO newRoom = ChattingRoomDTO.create(chattingRoomName);
+        chatRoom.put(newRoom.getChattingRoomId(), newRoom);
+        return newRoom;
     }
 
-    // 특정 패턴으로 채팅방 ID 생성 ( 두 유저들의 이름을 이용한 아이디 생성 )
-    public String generateRoomId(String user1, String user2) {
-        List<String> users = Arrays.asList(user1, user2);
-        Collections.sort(users); // 항상 같은 순서로 정렬
-        String concatenateIds = String.join("_", users);
-        return DigestUtils.sha256Hex(concatenateIds);
+    // 채팅방 ID 로 가져오는 메서드 (존재 여부 확인용)
+    public ChattingRoomDTO getChatRoomById(String chatRoomId) {
+        return Optional.ofNullable(chatRoom.get(chatRoomId))
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
     }
 
     // 메세지 저장 (DB)

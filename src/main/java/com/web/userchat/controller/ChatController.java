@@ -15,10 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Controller
 public class ChatController {
@@ -30,6 +27,7 @@ public class ChatController {
 
     @GetMapping("/chatRoom")
     public String getAllUsers(Principal principal, Model model) {
+
         String currentEmail = principal.getName();
         User currentUser = userRepository.findByEmail(currentEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -40,6 +38,10 @@ public class ChatController {
         List<User> allUsers = chatService.getAllUsersExceptCurrentUser(currentUsername);
         Set<String> onlineUsers = Optional.ofNullable(chatService.getOnlineUsers()).orElse(Collections.emptySet());
 
+        ChattingRoomDTO chattingRoomDTO = new ChattingRoomDTO();
+        chattingRoomDTO.setChattingRoomId(UUID.randomUUID().toString());
+        model.addAttribute("chattingRoomDTO", chattingRoomDTO);
+
 
         model.addAttribute("allUsers", allUsers);
         model.addAttribute("onlineUsers", onlineUsers);
@@ -48,20 +50,15 @@ public class ChatController {
         return "chatRoom"; // 유저 목록 페이지 html
     }
 
-    @GetMapping("/chatRoom/{user1}/{user2}")
-    public String getChattingRoom(@PathVariable String user1, @PathVariable String user2, Model model) {
-        User userOne = userRepository.findByUsername(user1).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        User userTwo = userRepository.findByUsername(user2).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 채팅방 아이디 생성
-        String chatRoomId = chatService.generateRoomId(userOne.getUsername(), userTwo.getUsername());
-        ChattingRoomDTO chattingRoomDTO = chatService.createChattingRoom(userOne.getUsername(), userTwo.getUsername());
+    @GetMapping("/chatRoom/{chatRoomId}")
+    public String getChattingRoom(@PathVariable String chatRoomId, Model model) {
+        ChattingRoomDTO chattingRoomDTO = chatService.getChatRoomById(chatRoomId);
 
         model.addAttribute("chattingRoomDTO", chattingRoomDTO);
         model.addAttribute("message", chatService.getChatMessages(chatRoomId));
-
         return "chatRoom";
     }
+
 
     @GetMapping("/api/chat/{chattingRoomId}")
     public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable String chattingRoomId) {

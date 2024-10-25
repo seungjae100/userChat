@@ -7,7 +7,10 @@
     <title>User List</title>
     <link rel="stylesheet" th:href="@{/css/chatRoom.css}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.2/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script th:src="@{/js/chatRoom.js}"></script>
+
 </head>
 <body>
 <div class="chat-container">
@@ -31,7 +34,7 @@
                 <span class="username" th:text="${user.username}"></span>
                 <span th:if="${#sets.contains(onlineUsers, user.username)}" class="status-online">온라인</span>
                 <span th:if="${!#sets.contains(onlineUsers, user.username)}" class="status-offline">오프라인</span>
-                <a href="#" th:attr="data-username=${user.username}" class="chat-link">채팅하기</a>
+                <a href="#" th:attr="data-chatRoomId=${chattingRoomDTO.chattingRoomId}" class="chat-link">채팅하기</a>
             </li>
         </ul>
     </div>
