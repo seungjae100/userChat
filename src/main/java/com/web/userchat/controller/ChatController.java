@@ -25,6 +25,8 @@ public class ChatController {
     @Autowired
     private UserRepository userRepository;
 
+
+    // 채팅룸에 모든 사용자를 찾는 메서드
     @GetMapping("/chatRoom")
     public String getAllUsers(Principal principal, Model model) {
 
@@ -35,54 +37,39 @@ public class ChatController {
         String currentUsername = currentUser.getUsername();
         chatService.loginUser(currentUsername); // 로그인 시 사용자 온라인 설정
 
+        addCommonModelAttributes(model, currentUser, currentUsername);
+
         List<User> allUsers = chatService.getAllUsersExceptCurrentUser(currentUsername);
-        Set<String> onlineUsers = Optional.ofNullable(chatService.getOnlineUsers()).orElse(Collections.emptySet());
-
-        ChattingRoomDTO chattingRoomDTO = new ChattingRoomDTO();
-        chattingRoomDTO.setChattingRoomId(UUID.randomUUID().toString());
-        model.addAttribute("chattingRoomDTO", chattingRoomDTO);
-
+        Set<String> onlineUsers = chatService.getOnlineUsers();
 
         model.addAttribute("allUsers", allUsers);
         model.addAttribute("onlineUsers", onlineUsers);
-        model.addAttribute("currentUsername", currentUsername);
-        model.addAttribute("currentEmail", currentEmail);
         return "chatRoom"; // 유저 목록 페이지 html
     }
 
-    @GetMapping("/chatRoom/{chatRoomId}")
-    public String getChattingRoom(@PathVariable String chatRoomId, Model model) {
-        ChattingRoomDTO chattingRoomDTO = chatService.getChatRoomById(chatRoomId);
-
-        model.addAttribute("chattingRoomDTO", chattingRoomDTO);
-        model.addAttribute("message", chatService.getChatMessages(chatRoomId));
-        return "chatRoom";
+    @GetMapping("/api/chatRoom/getId")
+    public ResponseEntity<String> getChatRoomId(@RequestParam String user1, @RequestParam String user2) {
+        String chatRoomId = chatService.getOrCreateChatRoomId(user1, user2);
+        return ResponseEntity.ok(chatRoomId);
     }
 
-
-    @GetMapping("/api/chat/{chattingRoomId}")
-    public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable String chattingRoomId) {
-        List<ChatMessage> messages = chatService.getChatMessages(chattingRoomId);
+    // 메세지 조회를 위한 메서드
+    @GetMapping("/api/chatRoom/{chatRoomId}/messages")
+    public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable String chatRoomId) {
+        List<ChatMessage> messages = chatService.getChatMessages(chatRoomId);
         return ResponseEntity.ok(messages);
     }
 
-    @PostMapping("/api/chat/send")
-    public ResponseEntity<ChatMessage> sendMessage(@RequestBody ChatMessage chatMessage) {
-        // 채팅 메세지를 저장
-        chatService.saveMessage(chatMessage);
-
-        // 저장된 메세지를 응답으로 반환
-        return ResponseEntity.ok(chatMessage);
-    }
-
-    @MessageMapping("/chat.sendMessage/{chattingRoomId}")
+    // 채팅방에 있는 채팅을 저장하는 메서드
+    @MessageMapping("/chat/send/{chatRoomId}")
     @SendTo("/topic/{chattingRoomId}")
-    public ChatMessage sendMessage(@PathVariable String chattingRoomId, @Payload ChatMessage chatMessage) {
-        chatMessage.setChattingRoomId(chattingRoomId); // 채팅룸 아이디 저장
+    public ChatMessage sendMessage(@PathVariable String chatRoomId, @Payload ChatMessage chatMessage) {
+        chatMessage.setChattingRoomId(chatRoomId); // 채팅룸 아이디 저장
         chatService.saveMessage(chatMessage); // 메세지 저장
         return chatMessage;
     }
 
+    // 유저를 검색하여 찾는 메서드
     @GetMapping("/users/search")
     public String searchUsers(@RequestParam("query") String query, Principal principal, Model model) {
         // 현재 사용자 이메일을 가져옴
@@ -93,16 +80,21 @@ public class ChatController {
         String currentUsername = currentUser.getUsername();
 
         // 검색어에 따른 사용자 목록 가져오기
-        List<User> searchResults = userRepository.findByUsernameContaining(query);
+        List<User> searchResults = chatService.searchUsers(query, currentUsername);
         // 현재 로그인한 사용자는 검색 결과에서 제외
         searchResults.removeIf(user -> user.getUsername().equals(currentUsername));
 
-        // 모델에 필요한 정보 추가
-        model.addAttribute("currentUser", currentUser);
+        addCommonModelAttributes(model, currentUser, currentUsername);
         model.addAttribute("allUsers", searchResults);
-        model.addAttribute("onlineUsers", chatService.getOnlineUsers());
 
         return "chatRoom"; // 유저 목록 페이지 html
+    }
+
+    // 모델에 공통 속성 추가를 위한 메서드
+    private void addCommonModelAttributes(Model model, User currentUser, String currentUsername) {
+        model.addAttribute("currentUsername", currentUsername);
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("onlineUsers", chatService.getOnlineUsers());
     }
 
 }

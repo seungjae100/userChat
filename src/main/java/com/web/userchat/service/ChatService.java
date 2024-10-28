@@ -51,10 +51,19 @@ public class ChatService {
     }
 
     // 채팅방을 고유한 ID 로 생성하고 저장하거나 이미 존재하는 경우 찾는 메서드
-    public ChattingRoomDTO createChattingRoom(String chattingRoomName) {
-        ChattingRoomDTO newRoom = ChattingRoomDTO.create(chattingRoomName);
-        chatRoom.put(newRoom.getChattingRoomId(), newRoom);
-        return newRoom;
+    public String getOrCreateChatRoomId(String user1, String user2) {
+        // 두 사용자의 이름을 알파벳 순서로 정렬하여 고유한 ID 생성
+        String sortedUsers = user1.compareTo(user2) < 0 ? user1 + "_" + user2 : user2 + "_" + user1;
+        String chatRoomId = DigestUtils.sha256Hex(sortedUsers); // 해시값을 사용하여 고유한 ID 생성
+
+        // 채팅방이 이미 존재하는지 확인하고 없으면 생성
+        chatRoom.computeIfAbsent(chatRoomId, id -> {
+            ChattingRoomDTO newRoom = new ChattingRoomDTO();
+            newRoom.setChattingRoomId(chatRoomId);
+            newRoom.setChattingRoomName(user1 + "와" + user2 + "의 채팅방");
+            return newRoom;
+        });
+        return chatRoomId;
     }
 
     // 채팅방 ID 로 가져오는 메서드 (존재 여부 확인용)
