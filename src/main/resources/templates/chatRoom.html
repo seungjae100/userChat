@@ -5,9 +5,9 @@
     <meta http-equiv="X-UA-compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User List</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <link rel="stylesheet" th:href="@{/css/chatRoom.css}">
-    <script th:src="@{/js/chatRoom.js}"></script>
-
 </head>
 <body>
 <div class="chat-container">
@@ -27,11 +27,11 @@
             </li>
 
             <!-- 나머지 사용자 목록 -->
-            <li th:each="user : ${allUsers}" th:if="${user.username != currentUsername}" class="user-item">
+            <li th:each="user : ${allUsers}" th:if="${user.email != currentUsername}" class="user-item">
                 <span class="username" th:text="${user.username}"></span>
                 <span th:if="${#sets.contains(onlineUsers, user.username)}" class="status-online">온라인</span>
                 <span th:if="${!#sets.contains(onlineUsers, user.username)}" class="status-offline">오프라인</span>
-                <a href="#" th:attrappend="data-username=${user.username}" class="chat-link">채팅하기</a>
+                <a href="#" th:attr="data-user-email=${user.email}" class="chat-link">채팅하기</a>
             </li>
         </ul>
     </div>
@@ -49,6 +49,6 @@
         </div>
     </div>
 </div>
-
+<script th:src="@{/js/chatRoom.js}"></script>
 </body>
 </html>
