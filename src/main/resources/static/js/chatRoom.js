@@ -32,12 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const normalizedCurrentEmail = currentEmail.trim().toLowerCase();
                 const normalizedChatUserEmail = chatUserEmail.trim().toLowerCase();
 
-                const sortedUsers = normalizedCurrentEmail.localeCompare(normalizedChatUserEmail) < 0
-                    ? `${normalizedCurrentEmail}_${normalizedChatUserEmail}`
-                    : `${normalizedChatUserEmail}_${normalizedCurrentEmail}`;
-
                 try {
-
                     const response = await fetch(`/api/chatRoom/getId?user1Email=${encodeURIComponent(normalizedCurrentEmail)}&user2Email=${encodeURIComponent(normalizedChatUserEmail)}`);
                     if (response.ok) {
                         const chatRoomId = await response.text();
@@ -135,29 +130,52 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(error => console.error('채팅 데이터를 가져오던 중 오류 발생:', error));
         }
 
+        // 사용자별로 마지막 시간대의 시간 정보를 저장
+        let lastMessageTime = null; // 마지막 시간대의 시간 정보를 저장
+        let lastMessageElement = null; // 마지막 시간 표시된 메시지 요소 저장
+        let lastSender = null; // 마지막 메시지를 보낸 사용자의 이메일 저장
+
         function showMessageOutput(message) {
             const messageDiv = document.createElement('div');
             const isSentByMe = message.sender === currentEmail;
 
+            // 메시지 요소 설정
             messageDiv.classList.add('message', isSentByMe ? 'message-sent' : 'message-received');
 
             const messageContent = document.createElement('div');
             messageContent.classList.add('message-content');
+            messageContent.textContent = message.content;
 
-            const textSpan = document.createElement('span');
-            textSpan.classList.add('message-text');
-            textSpan.textContent = message.content;
+            // 현재 메시지의 시간 추출
+            const messageTime = new Date(message.timestamp);
+            const currentHoursMinutes = messageTime.getHours() + ':' + messageTime.getMinutes();
 
+            // 시간 표시 로직 수정 - 이전 메시지들의 시간 표시 제거 후 최신 메시지에만 시간 표시
+            if (lastMessageElement && lastSender === message.sender && lastMessageTime ===currentHoursMinutes) {
+                const previousTimeSpan = lastMessageElement.querySelector('.message-time');
+                if (previousTimeSpan) {
+                    lastMessageElement.removeChild(previousTimeSpan);
+                }
+            }
+
+            // 현재 메시지에 시간 추가 (항상 최신 메시지에만 시간 표시)
             const timeSpan = document.createElement('span');
             timeSpan.classList.add('message-time');
-            const messageTime = new Date(message.timestamp);
             timeSpan.textContent = messageTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            messageDiv.appendChild(timeSpan);
 
-            messageContent.appendChild(textSpan);
-            messageContent.appendChild(timeSpan);
+            // 마지막 메시지 요소와 보낸 사용자 업데이트 - 항상 최신 메시지로 업데이트
+            lastMessageElement = messageDiv;
+            lastSender = message.sender;
+            lastMessageTime = currentHoursMinutes;
+
+            // 메시지 요소들을 DOM에 추가
             messageDiv.appendChild(messageContent);
-
             chatContent.appendChild(messageDiv);
+
+            // 스크롤을 가장 아래로 이동
+            scrollToBottom();
         }
+
     }
 });

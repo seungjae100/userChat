@@ -67,7 +67,7 @@ body {
 }
 
 .chat-room {
-    flex-grow: 1;
+    flex-grow: 2;
     display: flex;
     flex-direction: column;
     background: #fff;
@@ -84,20 +84,59 @@ body {
 }
 
 .chat-content {
-    flex-grow: 1;
-    margin: 20px 0;
-    overflow-y: auto;
-    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
     padding: 10px;
-    box-sizing: border-box;
+    height: 500px;
+    overflow-y: scroll;
+    background-color: #f8f8f8;
 }
 
+/* 메시지 컨테이너 기본 설정 */
 .message {
-    margin-bottom: 15px;
-    padding: 10px;
-    border-radius: 5px;
+    margin: 5px;
     max-width: 60%;
+    padding: 10px;
+    border-radius: 10px;
+    position: relative;
+    display: inline-block;
+    clear: both;
 }
+
+/* 내가 보낸 메시지 */
+.message-sent {
+    background-color: #fff9c4; /* 노란색 배경 */
+    align-self: flex-end;
+    margin-left: auto;
+    text-align: left; /* 변경: 내 메시지는 텍스트 왼쪽 정렬, 시간은 오른쪽 정렬 */
+}
+
+/* 상대방이 보낸 메시지 */
+.message-received {
+    background-color: #ffffff; /* 흰색 배경 */
+    align-self: flex-start;
+    margin-right: auto;
+    text-align: left; /* 변경 없음: 상대방 메시지는 왼쪽 정렬 */
+}
+
+/* 메시지 내용 */
+.message-content {
+    font-size: 16px;
+    line-height: 1.4;
+    word-break: break-word; /* 변경: 메시지가 긴 경우에도 잘릴 수 있도록 설정 */
+    margin-bottom: 3px; /* 메시지와 시간 표시 간격 조정을 위해 추가 */
+}
+
+/* 메시지 시간 표시 */
+.message-time {
+    display: block;
+    font-size: 12px;
+    color: #888888;
+    margin-top: 5px;
+    margin-right: 10px; /* 시간 표시를 말풍선 오른쪽으로 정렬하는 데 사용 */
+    text-align: right; /* 시간이 말풍선 오른쪽 아래에 위치하도록 */
+}
+
 
 .from-user {
     align-self: flex-end;
