@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
 
@@ -61,10 +63,17 @@ public class UserService {
     // 쿠키를 생성하는 메서드
     private Cookie createCookie(String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(false);
-        cookie.setSecure(false); // HTTP 테스트 시 false, HTTPS 환경에서는 true 로 설정
+        cookie.setHttpOnly(false); // HTTP 개발 시 false, HTTPS 환경에서는 true 로 설정
+        cookie.setSecure(false); // HTTP 개발 시 false, HTTPS 환경에서는 true 로 설정
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         return cookie;
+    }
+
+    public void logoutUser(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+        }
     }
 }

@@ -1,0 +1,210 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.chat-container {
+    display: flex;
+    max-width: 1200px;
+    margin: auto;
+    height: 90vh;
+    border: 1px solid #ccc;
+}
+
+.user-list {
+    width: 30%;
+    background: #fff;
+    padding: 20px;
+    border-right: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.user-list .search-box {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.user-list h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.user-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.user-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.user-list li .user-name {
+    flex: 1;
+}
+
+.status-online, .status-offline {
+    margin-left: 10px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.status-online {
+    color: green;
+}
+
+.status-offline {
+    color: red;
+}
+
+.chat-room {
+    flex-grow: 2;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+}
+
+.chat-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    height: 500px;
+    overflow-y: scroll;
+    background-color: #f8f8f8;
+}
+
+/* 메시지 컨테이너 기본 설정 */
+.message {
+    margin: 5px;
+    max-width: 60%;
+    padding: 10px;
+    border-radius: 10px;
+    position: relative;
+    display: inline-block;
+    clear: both;
+}
+
+/* 내가 보낸 메시지 */
+.message-sent {
+    background-color: #fff9c4; /* 노란색 배경 */
+    align-self: flex-end;
+    margin-left: auto;
+    text-align: left; /* 변경: 내 메시지는 텍스트 왼쪽 정렬, 시간은 오른쪽 정렬 */
+}
+
+/* 상대방이 보낸 메시지 */
+.message-received {
+    background-color: #ffffff; /* 흰색 배경 */
+    align-self: flex-start;
+    margin-right: auto;
+    text-align: left; /* 변경 없음: 상대방 메시지는 왼쪽 정렬 */
+}
+
+/* 메시지 내용 */
+.message-content {
+    font-size: 16px;
+    line-height: 1.4;
+    word-break: break-word; /* 변경: 메시지가 긴 경우에도 잘릴 수 있도록 설정 */
+    margin-bottom: 3px; /* 메시지와 시간 표시 간격 조정을 위해 추가 */
+}
+
+/* 메시지 시간 표시 */
+.message-time {
+    display: block;
+    font-size: 12px;
+    color: #888888;
+    margin-top: 5px;
+    margin-right: 10px; /* 시간 표시를 말풍선 오른쪽으로 정렬하는 데 사용 */
+    text-align: right; /* 시간이 말풍선 오른쪽 아래에 위치하도록 */
+}
+
+
+.from-user {
+    align-self: flex-end;
+    background-color: #d1e7ff;
+}
+
+.from-other {
+    align-self: flex-start;
+    background-color: #e0e0e0;
+}
+
+.chat-input {
+    display: flex;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+.chat-input input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.chat-input button {
+    padding: 10px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+    border-radius: 5px;
+}
+
+.profile-edit-list-link {
+    margin-left: auto;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 1.5em;
+}
+
+.profile-edit-list-link:hover {
+    text-decoration: underline;
+}
+
+/* 정렬 문제 해결을 위해 사용자 목록의 상태와 이름을 가운데 정렬 */
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.user-item .user-name {
+    flex: 1;
+}
+
+.user-item .status-online, .user-item .status-offline {
+    text-align: right;
+    min-width: 70px;
+}
+
+.chat-link {
+    color: #007bff;
+    text-decoration: none;
+    margin-left: auto;
+}
+
+.chat-link:hover {
+    text-decoration: underline;
+}

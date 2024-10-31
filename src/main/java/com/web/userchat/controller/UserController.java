@@ -1,6 +1,7 @@
 package com.web.userchat.controller;
 
 import com.web.userchat.dto.LoginDTO;
+import com.web.userchat.service.ChatService;
 import com.web.userchat.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,12 +12,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @Controller
 @RequestMapping
 public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private ChatService chatService;
 
     @GetMapping("/users/register")
     public String registerForm(Model model) {
@@ -60,5 +65,15 @@ public class UserController {
             model.addAttribute("error", e.getMessage());
             return "login";
         }
+    }
+
+    @GetMapping("/logout")
+    public String logout(Principal principal) {
+        if (principal != null) {
+            String currentEmail = principal.getName(); // 현재 로그인한 사용자의 이메일을 가져온다.
+            userService.logoutUser(currentEmail);
+            chatService.logoutUser(currentEmail);
+        }
+        return "redirect:/";
     }
 }

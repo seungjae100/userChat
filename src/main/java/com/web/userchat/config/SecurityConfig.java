@@ -37,8 +37,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/users/register", "/users/login","/", "/css/**", "/js/**").permitAll() // 회원가입 및 로그인 엔드포인트 허용
-                        .anyRequest().authenticated() // 그 외의 요청은 인증 필요
+                        //.requestMatchers("/users/register", "/users/login","/", "/css/**", "/js/**","/chat-websocket/**").permitAll() // 회원가입 및 로그인 엔드포인트 허용
+                        //.anyRequest().authenticated() // 그 외의 요청은 인증 필요
+                        .anyRequest().permitAll() // 그 외의 요청은 인증 필요
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션을 사용하지 않도록 설정 (JWT 사용)
