@@ -15,7 +15,7 @@
     <div class="user-list">
         <form method="get" action="/users/search">
             <input type="text" name="query" placeholder="유저이름을 입력하세요" class="search-box">
-            <button type="submit">검색</button>
+            <button type="submit" class="search-button">검색</button>
         </form>
         <ul>
             <!-- 현재 사용자 정보 표시 -->
@@ -31,16 +31,23 @@
                 <span class="username" th:text="${user.username}"></span>
                 <span th:if="${#sets.contains(onlineUsers, user.username)}" class="status-online">온라인</span>
                 <span th:if="${!#sets.contains(onlineUsers, user.username)}" class="status-offline">오프라인</span>
-                <a href="#" th:attr="data-user-email=${user.email}" class="chat-link">채팅하기</a>
+                <a href="" th:attr="data-user-email=${user.email}" class="chat-link">채팅하기</a>
             </li>
         </ul>
+    </div>
+    <div class="home-icon-container">
+        <a href="/">
+            <img src="/images/home_icon.png" alt="Home" class="home-icon">
+        </a>
     </div>
 
     <!-- 채팅방 -->
     <div class="chat-room">
         <div class="chat-header">
             <h3 id="current-chat-user">채팅 상대를 선택하세요</h3>
-            <button class="menu-button">...</button>
+            <a href="#" id="exit-chat-button">
+                <img src="/images/exit_icon.png" alt="나가기" class="exit-icon">
+            </a>
         </div>
         <div class="chat-content" id="chat-content"></div>
         <div class="chat-input">
@@ -49,6 +56,7 @@
         </div>
     </div>
 </div>
+
 <script th:src="@{/js/chatRoom.js}"></script>
 </body>
 </html>

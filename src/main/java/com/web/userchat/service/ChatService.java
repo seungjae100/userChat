@@ -73,18 +73,6 @@ public class ChatService {
         messagingTemplate.convertAndSend("/topic/chat/" + roomId, systemMessage);
     }
 
-    // 사용자 입장 처리 메서드 추가
-    public void handleUserJoin(String username, String roomId) {
-        addUser(username);
-        sendSystemMessage(roomId, username + "님이 입장하셨습니다.");
-    }
-
-    // 사용자 퇴장 처리 메서드 추가
-    public void handleUserLeave(String username, String roomId) {
-        removeUser(username);
-        sendSystemMessage(roomId, username + "님이 퇴장하셨습니다.");
-    }
-
     public List<User> getAllUsersExceptCurrentUser(String currentUsername) {
         List<User> allUsers = userRepository.findAll();
         allUsers.removeIf(user -> user.getUsername().equals(currentUsername));
