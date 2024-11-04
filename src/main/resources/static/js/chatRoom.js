@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const chatUserHeader = document.getElementById('current-chat-user');
     const sendButton = document.getElementById('send-button');
     const messageInput = document.getElementById('message-input');
+    const exitChatButton = document.getElementById('exit-chat-button');
 
     // JWT 토큰에서 현재 사용자 정보 추출
     const accessToken = document.cookie
@@ -114,21 +115,27 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        function fetchMessages(chattingRoomId) {
-            fetch(`/api/chatRoom/${chattingRoomId}/messages`, {
+        function fetchMessages(chatRoomId) {
+            fetch(`/api/chatRoom/${chatRoomId}/messages`, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 }
             })
                 .then(response => response.json())
                 .then(messages => {
-                    chatContent.innerHTML = '';
-                    messages.forEach(message => {
-                        showMessageOutput(message);
-                    });
+                    // 응답이 배열인지 확인
+                    if (Array.isArray(messages)) {
+                        chatContent.innerHTML = '';
+                        messages.forEach(message => {
+                            showMessageOutput(message);
+                        });
+                    } else {
+                        console.error('서버에서 올바른 형식의 데이터를 받지 못했습니다:', messages);
+                    }
                 })
                 .catch(error => console.error('채팅 데이터를 가져오던 중 오류 발생:', error));
         }
+
 
         // 사용자별로 마지막 시간대의 시간 정보를 저장
         let lastMessageTime = null; // 마지막 시간대의 시간 정보를 저장
@@ -189,6 +196,27 @@ document.addEventListener('DOMContentLoaded', function () {
             // 스크롤을 가장 아래로 이동
             scrollToBottom();
         }
+        // 나가기 기능 추가
+        exitChatButton.addEventListener('click', function (event) {
+            event.preventDefault();
 
+            const chatRoomId = window.location.pathname.split("/")[2];
+
+            fetch(`/chat/leave?chatRoomId=${encodeURIComponent(chatRoomId)}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('채팅방에서 나갔습니다.');
+                        window.location.href = '/chatRoom'; // 채팅방 목록 페이지로 리다이렉트
+                    } else {
+                        alert('채팅방 나가기에 실패했습니다.');
+                    }
+                })
+                .catch(error => console.error('채팅방 나가기 중 오류 발생:', error));
+        });
     }
 });

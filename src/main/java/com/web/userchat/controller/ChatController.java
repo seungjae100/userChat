@@ -1,13 +1,15 @@
 package com.web.userchat.controller;
 
-import com.web.userchat.dto.ChattingRoomDTO;
 import com.web.userchat.model.ChatMessage;
+import com.web.userchat.model.ChatRoom;
 import com.web.userchat.model.MessageType;
 import com.web.userchat.model.User;
+import com.web.userchat.repository.ChatRoomRepository;
 import com.web.userchat.repository.UserRepository;
 import com.web.userchat.service.ChatService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -28,6 +30,8 @@ public class ChatController {
     private ChatService chatService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ChatRoomRepository chatRoomRepository;
 
     // 기존 채팅룸 사용자 조회 메서드 유지
     @GetMapping("/chatRoom")
@@ -66,14 +70,47 @@ public class ChatController {
         String chatRoomId = DigestUtils.sha256Hex(sortedUsers);
         System.out.println("Generated chatRoomId: " + chatRoomId);
 
+        // 데이터베이스에 해당 채팅방이 존재하는지 확인하고 없으면 새로 생성
+        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findById(chatRoomId);
+        if (existingChatRoom.isEmpty()) {
+            ChatRoom newChatRoom = new ChatRoom(chatRoomId, "Chat between " + normalizedUser1 + " and " + normalizedUser2);
+            chatRoomRepository.save(newChatRoom);
+            System.out.println("New chat room created with ID: " + chatRoomId);
+        }
+
         return ResponseEntity.ok(chatRoomId);
     }
+
+    // 채팅방 나가기
+    @PostMapping("/chat/leave")
+    @ResponseBody
+    public ResponseEntity<String> leaveChatRoom(@RequestParam String chatRoomId, Principal principal) {
+        String currentUsername = principal.getName();
+
+        Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findById(chatRoomId);
+        if (chatRoomOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("채팅방을 찾을 수 없습니다.");
+        }
+
+        ChatRoom chatRoom = chatRoomOptional.get();
+        boolean success = chatService.leaveChatRoom(chatRoom, currentUsername);
+
+        if (success) {
+            return ResponseEntity.ok("채팅방에서 나갔습니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("채팅방을 나가는데 실패하였습니다.");
+        }
+    }
+
+
 
     // 기존 메시지 조회 메서드 유지
     @GetMapping("/api/chatRoom/{chatRoomId}/messages")
     @ResponseBody
     public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable String chatRoomId) {
-        List<ChatMessage> messages = chatService.getChatMessages(chatRoomId);
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+        List<ChatMessage> messages = chatService.getChatMessages(chatRoom);
         return ResponseEntity.ok(messages);
     }
 
@@ -85,9 +122,15 @@ public class ChatController {
             @Payload ChatMessage chatMessage,
             Principal principal
     ) {
+        // chatRoomId로 ChatRoom 객체 조회
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        // ChatMessage 객체에 chatRoom 설정
+        chatMessage.setChatRoom(chatRoom);
+
         // 보안을 위해 실제 발신자 정보로 업데이트
         chatMessage.setSender(principal.getName());
-        chatMessage.setChattingRoomId(chatRoomId);
         chatMessage.setTimestamp(LocalDateTime.now());
 
         // 메시지 저장
@@ -96,17 +139,22 @@ public class ChatController {
         return chatMessage;
     }
 
+
     // WebSocket 구독 처리를 위한 새로운 메서드
     @MessageMapping("/chat.subscribe/{chatRoomId}")
     @SendTo("/topic/chat/{chatRoomId}")
     public ChatMessage handleSubscribe(
             @DestinationVariable String chatRoomId,
             Principal principal
+
     ) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setType(MessageType.SUBSCRIBE);
         chatMessage.setSender(principal.getName());
-        chatMessage.setChattingRoomId(chatRoomId);
+        chatMessage.setChatRoom(chatRoom);
         chatMessage.setTimestamp(LocalDateTime.now());
         chatMessage.setContent(principal.getName() + "님이 채팅방에 입장하셨습니다.");
 
