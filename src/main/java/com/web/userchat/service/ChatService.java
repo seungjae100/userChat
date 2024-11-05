@@ -10,6 +10,7 @@ import com.web.userchat.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.LocalDateTime;
@@ -54,15 +55,23 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
 
+    public ChatRoom createChatRoom(String chatRoomName, String chatRoomId) {
+        ChatRoom chatRoom = new ChatRoom(chatRoomId, chatRoomName);
+        chatRoom.setUserCount(2); // 생성 시 userCount를 2로 설정
+        chatRoomRepository.save(chatRoom);
+        return chatRoom;
+    }
 
 
+
+    @Transactional
     public boolean leaveChatRoom(ChatRoom chatRoom, String username) {
         // 채팅방 나가기 메세지 생성
         ChatMessage leaveMessage = new ChatMessage();
         leaveMessage.setType(MessageType.SYSTEM);
         leaveMessage.setSender("SYSTEM");
         leaveMessage.setContent(username + "님이 채팅방을 나가셨습니다.");
-        leaveMessage.setChatRoom(chatRoom); // ChatRoom 객체 설정
+        leaveMessage.setChatRoom(chatRoom);
         leaveMessage.setTimestamp(LocalDateTime.now());
 
         // 메세지 저장 및 전송
@@ -70,15 +79,16 @@ public class ChatService {
         messagingTemplate.convertAndSend("/topic/chat/" + chatRoom.getChatRoomId(), leaveMessage);
 
         // userCount 감소
-        chatRoom.setUserCount(chatRoom.getUserCount() -1);
-        if (chatRoom.getUserCount() <= 0) {
-            // 모든 유저가 나간 경우 채팅방 삭제
-            chatRoomRepository.delete(chatRoom);
-        } else {
-            // 변경사항 저장
-            chatRoomRepository.save(chatRoom);
-        }
+        chatRoom.setUserCount(chatRoom.getUserCount() - 1);
+        chatRoomRepository.save(chatRoom);
 
+        // userCount 가 0 이 아니면 방 삭제하지 않고 종료
+        if (chatRoom.getUserCount() > 0) {
+            return false; // 방이 삭제되지 않음
+        }
+        // userCount 가 0이면 채팅방과 메세지 삭제
+        chatMessageRepository.deleteByChatRoom(chatRoom);
+        chatRoomRepository.delete(chatRoom);
         return true;
     }
 
@@ -109,9 +119,5 @@ public class ChatService {
 
     public Set<String> getOnlineUsers() {
         return onlineUsers;
-    }
-
-    public boolean isUserOnline(String username) {
-        return onlineUsers.contains(username);
     }
 }

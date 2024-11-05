@@ -68,18 +68,22 @@ public class ChatController {
 
         // 방 ID 생성
         String chatRoomId = DigestUtils.sha256Hex(sortedUsers);
-        System.out.println("Generated chatRoomId: " + chatRoomId);
+        System.out.println("채팅방 ID : " + chatRoomId);
 
-        // 데이터베이스에 해당 채팅방이 존재하는지 확인하고 없으면 새로 생성
+        // 데이터베이스에 해당 채팅방이 존재하는지 확인
         Optional<ChatRoom> existingChatRoom = chatRoomRepository.findById(chatRoomId);
-        if (existingChatRoom.isEmpty()) {
-            ChatRoom newChatRoom = new ChatRoom(chatRoomId, "Chat between " + normalizedUser1 + " and " + normalizedUser2);
-            chatRoomRepository.save(newChatRoom);
-            System.out.println("New chat room created with ID: " + chatRoomId);
+        if (existingChatRoom.isPresent()) {
+            System.out.println("이미 채팅방이 존재합니다 : " + chatRoomId);
+            return ResponseEntity.ok(chatRoomId); // 이미 존재하면 기존 ID 반환합니다.
         }
+
+        // 존재하지 않으면 새 채팅방 생성
+        chatService.createChatRoom("Chat between " + normalizedUser1 + " and " + normalizedUser2, chatRoomId);
+        System.out.println("New chat room created with ID: " + chatRoomId);
 
         return ResponseEntity.ok(chatRoomId);
     }
+
 
     // 채팅방 나가기
     @PostMapping("/chat/leave")
@@ -93,12 +97,12 @@ public class ChatController {
         }
 
         ChatRoom chatRoom = chatRoomOptional.get();
-        boolean success = chatService.leaveChatRoom(chatRoom, currentUsername);
+        boolean isDeleted = chatService.leaveChatRoom(chatRoom, currentUsername);
 
-        if (success) {
-            return ResponseEntity.ok("채팅방에서 나갔습니다.");
+        if (isDeleted) {
+            return ResponseEntity.ok("채팅방이 삭제되었습니다.");
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("채팅방을 나가는데 실패하였습니다.");
+            return ResponseEntity.ok(currentUsername + "님이 채팅방을 나갔습니다.");
         }
     }
 
