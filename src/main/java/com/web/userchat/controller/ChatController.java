@@ -144,26 +144,26 @@ public class ChatController {
     }
 
 
-    // WebSocket 구독 처리를 위한 새로운 메서드
-    @MessageMapping("/chat.subscribe/{chatRoomId}")
-    @SendTo("/topic/chat/{chatRoomId}")
-    public ChatMessage handleSubscribe(
-            @DestinationVariable String chatRoomId,
-            Principal principal
-
-    ) {
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
-
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setType(MessageType.SUBSCRIBE);
-        chatMessage.setSender(principal.getName());
-        chatMessage.setChatRoom(chatRoom);
-        chatMessage.setTimestamp(LocalDateTime.now());
-        chatMessage.setContent(principal.getName() + "님이 채팅방에 입장하셨습니다.");
-
-        return chatMessage;
-    }
+//    // WebSocket 구독 처리를 위한 새로운 메서드
+//    @MessageMapping("/chat.subscribe/{chatRoomId}")
+//    @SendTo("/topic/chat/{chatRoomId}")
+//    public ChatMessage handleSubscribe(
+//            @DestinationVariable String chatRoomId,
+//            Principal principal
+//
+//    ) {
+//        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+//                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+//
+//        ChatMessage chatMessage = new ChatMessage();
+//        chatMessage.setType(MessageType.SUBSCRIBE);
+//        chatMessage.setSender(principal.getName());
+//        chatMessage.setChatRoom(chatRoom);
+//        chatMessage.setTimestamp(LocalDateTime.now());
+//        chatMessage.setContent(principal.getName() + "님이 채팅방에 입장하셨습니다.");
+//
+//        return chatMessage;
+//    }
 
     // 기존 사용자 검색 메서드 유지
     @GetMapping("/users/search")

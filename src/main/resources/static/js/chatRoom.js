@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const messageInput = document.getElementById('message-input');
     const exitChatButton = document.getElementById('exit-chat-button');
 
+    // 모달 관련 요소
+    const leaveModal = document.getElementById('leaveModal');
+    const confirmLeaveBtn = document.getElementById('confirmLeaveBtn');
+    const cancelLeaveBtn = document.getElementById('cancelLeaveBtn');
+    const modalTitle = document.getElementById('modalTitle');
+
     // JWT 토큰에서 현재 사용자 정보 추출
     const accessToken = document.cookie
         .split('; ')
@@ -22,12 +28,19 @@ document.addEventListener('DOMContentLoaded', function () {
         chatLinks.forEach(link => {
             link.addEventListener('click', async function (event) {
                 event.preventDefault();
+
+                // URL 생성을 위한 이메일
                 const chatUserEmail = link.getAttribute('data-user-email');
 
-                if (!chatUserEmail) {
+                // 채팅방 이름을 위한 username
+                const chatUsername = link.getAttribute('data-user-username');
+
+                if (!chatUsername || !chatUserEmail) {
                     console.error("선택된 유저 정보를 찾을 수 없습니다.");
                     return;
                 }
+                // 채팅방 이름 설정을 위한 username
+                chatUserHeader.textContent = chatUsername;
 
                 // 사용자 이메일을 알파벳순으로 정렬하고 공백을 제거하고 소문자로 변환
                 const normalizedCurrentEmail = currentEmail.trim().toLowerCase();
@@ -38,15 +51,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (response.ok) {
                         const chatRoomId = await response.text();
 
-                        console.log(`Received chatRoomId: ${chatRoomId}`); // 디버깅용 로그 추가
-
                         const newUrl = `/chatRoom/${chatRoomId}`;
                         history.pushState(null, '', newUrl);
 
                         fetchMessages(chatRoomId);
                         setupStompClient(chatRoomId);
 
-                        chatUserHeader.textContent = chatUserEmail;
+
                     } else {
                         console.error("채팅방 Id를 가져오는 도중 에러 발생");
                     }
@@ -101,10 +112,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Connected: ' + frame);
                 stompClient.subscribe(`/topic/chat/${chatRoomId}`, function (message) {
                     const parsedMessage = JSON.parse(message.body);
-                    if (parsedMessage.type === 'CHAT') {
                         showMessageOutput(parsedMessage);
                         scrollToBottom();
-                    }
+
                 });
 
                 const subscribeMessage = {
@@ -144,6 +154,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function showMessageOutput(message) {
             const isSentByMe = message.sender === currentEmail;
+
+            // 시스템 메세지 확인
+            if (message.type === 'SYSTEM') {
+                const systemMessageDiv = document.createElement('div');
+                systemMessageDiv.classList.add('system-message');
+                systemMessageDiv.textContent = message.content;
+                chatContent.appendChild(systemMessageDiv);
+                scrollToBottom();
+                return;
+            }
 
             // 현재 메시지의 시간 추출
             const messageTime = new Date(message.timestamp);
@@ -196,10 +216,26 @@ document.addEventListener('DOMContentLoaded', function () {
             // 스크롤을 가장 아래로 이동
             scrollToBottom();
         }
-        // 나가기 기능 추가
+
+        // 모달을 열고 닫는 함수
+        function openModal() {
+            const chatUsername = chatUserHeader.textContent.trim();
+            modalTitle.textContent = `${chatUsername}님의 채팅방을 나가시겠습니까?`; // 모달 제목 표시
+            leaveModal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            leaveModal.style.display = 'none';
+        }
+
+        // 나가기 버튼 클릭 시 모달 표시
         exitChatButton.addEventListener('click', function (event) {
             event.preventDefault();
+            openModal();
+        });
 
+        // 모달에서 예 버튼 클릭 시 나가기 요청
+        confirmLeaveBtn.addEventListener('click', function () {
             const chatRoomId = window.location.pathname.split("/")[2];
 
             fetch(`/chat/leave?chatRoomId=${encodeURIComponent(chatRoomId)}`, {
@@ -217,6 +253,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 })
                 .catch(error => console.error('채팅방 나가기 중 오류 발생:', error));
+
+            closeModal(); // 모달 닫기
         });
+
+        // 모달에서 아니오 버튼 클릭 시 모달 닫기
+        cancelLeaveBtn.addEventListener('click', function() {
+            closeModal();
+        });
+        // 초기화 시 모달을 숨김
+        closeModal();
     }
 });
