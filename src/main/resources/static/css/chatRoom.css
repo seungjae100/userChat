@@ -185,14 +185,28 @@ body {
     margin-right: 10px;
 }
 
+/* 일반 시스템 메시지 */
 .system-message {
-    text-align: center;
-    color: gray;
-    font-style: italic;
-    margin: 10px 0;
-    background-color: #f0f0f0;
+    font-size: 14px;
+    color: #666;
     padding: 5px 10px;
+    margin: 10px auto;
+    display: inline-block;
     border-radius: 8px;
+    background-color: #f0f0f0;
+    text-align: center;
+}
+
+/* 날짜 시스템 메시지 */
+.date-system-message {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    padding: 5px 10px;
+    margin: 10px auto;
+    display: inline-block;
+    border-radius: 8px;
+    background-color: #f0f0f0;
 }
 
 .from-user {

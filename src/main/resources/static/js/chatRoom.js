@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentEmail;
     let stompClient = null; // STOMP 클라이언트 선언
+    let lastDisplayedDate = null; // 마지막 표시된 날짜 저장
 
     if (accessToken) {
         const payload = JSON.parse(atob(accessToken.split('.')[1]));
@@ -153,7 +154,18 @@ document.addEventListener('DOMContentLoaded', function () {
         let lastSender = null; // 마지막 메시지를 보낸 사용자의 이메일 저장
 
         function showMessageOutput(message) {
-            const isSentByMe = message.sender === currentEmail;
+            const isSentByMe = message.sender === currentEmail || message.sender === currentEmail.split('@')[0];
+            const messageDate = new Date(message.timestamp);
+            const formattedDate = messageDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+            // 날짜가 변경될 경우, 중앙에 날짜를 시스템 메시지로 표시
+            if (lastDisplayedDate !== formattedDate) {
+                const dateMessageDiv = document.createElement('div');
+                dateMessageDiv.classList.add('date-system-message');
+                dateMessageDiv.textContent = formattedDate;
+                chatContent.appendChild(dateMessageDiv);
+                lastDisplayedDate = formattedDate;
+            }
 
             // 시스템 메세지 확인
             if (message.type === 'SYSTEM') {

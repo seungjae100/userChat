@@ -133,9 +133,15 @@ public class ChatController {
         // ChatMessage 객체에 chatRoom 설정
         chatMessage.setChatRoom(chatRoom);
 
+        // sender 필드를 username 으로 설정
+        String username = userRepository.findByEmail(principal.getName())
+                        .map(User::getUsername)
+                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
         // 보안을 위해 실제 발신자 정보로 업데이트
-        chatMessage.setSender(principal.getName());
+        chatMessage.setSender(username);
         chatMessage.setTimestamp(LocalDateTime.now());
+
 
         // 메시지 저장
         chatService.saveMessage(chatMessage);
