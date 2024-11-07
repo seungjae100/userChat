@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 // 채팅방 이름 설정을 위한 username
                 chatUserHeader.textContent = chatUsername;
+                // 채팅방 입장 시 나가기 버튼 표시
+                enterChatRoom();
 
                 // 사용자 이메일을 알파벳순으로 정렬하고 공백을 제거하고 소문자로 변환
                 const normalizedCurrentEmail = currentEmail.trim().toLowerCase();
@@ -67,6 +69,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+
+        function enterChatRoom() {
+            exitChatButton.style.display = "block"; // 나가기 버튼 표시
+        }
+
+        function hideExitChatButton() {
+            exitChatButton.style.display = "none"; // 나가기 버튼 숨김
+        }
 
         sendButton.addEventListener('click', function () {
             sendMessage();
@@ -260,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (response.ok) {
                         alert('채팅방에서 나갔습니다.');
                         window.location.href = '/chatRoom'; // 채팅방 목록 페이지로 리다이렉트
+                        hideExitChatButton();
                     } else {
                         alert('채팅방 나가기에 실패했습니다.');
                     }

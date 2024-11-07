@@ -21,8 +21,8 @@
             <!-- 현재 사용자 정보 표시 -->
             <li class="user-item">
                 <span class="username" th:text="${currentUsername}"></span>
-                <span th:if="${#sets.contains(onlineUsers, currentUsername)}" class="status-online">온라인</span>
-                <span th:if="${!#sets.contains(onlineUsers, currentUsername)}" class="status-offline">오프라인</span>
+<!--                <span th:if="${#sets.contains(onlineUsers, currentUsername)}" class="status-online">온라인</span>-->
+<!--                <span th:if="${!#sets.contains(onlineUsers, currentUsername)}" class="status-offline">오프라인</span>-->
                 <a href="/userModify" class="profile-edit-list-link">...</a>
             </li>
 
@@ -45,7 +45,7 @@
     <div class="chat-room">
         <div class="chat-header">
             <h3 id="current-chat-user">채팅 상대를 선택하세요</h3>
-            <a href="#" id="exit-chat-button">
+            <a href="#" id="exit-chat-button" style="display: none">
                 <img src="/images/exit_icon.png" alt="나가기" class="exit-icon">
             </a>
         </div>
