@@ -67,21 +67,8 @@ public class ChatService {
     @Transactional
     public boolean leaveChatRoom(ChatRoom chatRoom, String email) {
 
-        String username = userRepository.findByEmail(email)
-                .map(User::getUsername)
+        userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 채팅방 나가기 메세지 생성
-        ChatMessage leaveMessage = new ChatMessage();
-        leaveMessage.setType(MessageType.SYSTEM);
-        leaveMessage.setSender("SYSTEM");
-        leaveMessage.setContent(username + "님이 채팅방을 나가셨습니다.");
-        leaveMessage.setChatRoom(chatRoom);
-        leaveMessage.setTimestamp(LocalDateTime.now());
-
-        // 메세지 저장 및 전송
-        chatMessageRepository.save(leaveMessage);
-        messagingTemplate.convertAndSend("/topic/chat/" + chatRoom.getChatRoomId(), leaveMessage);
 
         // userCount 감소
         chatRoom.setUserCount(chatRoom.getUserCount() - 1);

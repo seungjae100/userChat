@@ -99,11 +99,8 @@ public class ChatController {
         ChatRoom chatRoom = chatRoomOptional.get();
         boolean isDeleted = chatService.leaveChatRoom(chatRoom, currentUsername);
 
-        if (isDeleted) {
-            return ResponseEntity.ok("채팅방이 삭제되었습니다.");
-        } else {
-            return ResponseEntity.ok(currentUsername + "님이 채팅방을 나갔습니다.");
-        }
+        // 단순 성공 응답만 반환
+        return ResponseEntity.ok("채팅방에서 나갔습니다.");
     }
 
 
