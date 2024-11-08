@@ -25,7 +25,6 @@ public class ChatRoom {
 
     private int userCount; // 채팅방에 있는 유저의 수
 
-    // ChatMessage 엔티티와의 연관 관계 설정
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
     private List<ChatMessage> messageList = new ArrayList<>();

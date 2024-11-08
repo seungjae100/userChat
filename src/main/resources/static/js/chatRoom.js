@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // 채팅방 이름 설정을 위한 username
                 chatUserHeader.textContent = chatUsername;
                 // 채팅방 입장 시 나가기 버튼 표시
-                enterChatRoom();
+                showExitButton();
 
                 // 사용자 이메일을 알파벳순으로 정렬하고 공백을 제거하고 소문자로 변환
                 const normalizedCurrentEmail = currentEmail.trim().toLowerCase();
@@ -57,8 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const newUrl = `/chatRoom/${chatRoomId}`;
                         history.pushState(null, '', newUrl);
 
-                        fetchMessages(chatRoomId);
-                        setupStompClient(chatRoomId);
+                        joinRoom(chatRoomId);
 
 
                     } else {
@@ -70,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        function enterChatRoom() {
+        function showExitButton() {
             exitChatButton.style.display = "block"; // 나가기 버튼 표시
         }
 
@@ -136,7 +135,45 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        function fetchMessages(chatRoomId) {
+        let isReturningUser = true;
+
+        async function joinRoom(chatRoomId) {
+            try {
+                const response = await fetch(`/chat/enter?chatRoomId=${encodeURIComponent(chatRoomId)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                const result = await response.json();
+
+                // 서버로부터 받은 재입장 여부를 변수에 설정
+                isReturningUser = result.isReturningUser;
+
+                // 재입장 여부 확인
+                if (isReturningUser) {
+                    clearChatWindow();
+                }
+
+                console.log("Server response:", result); // 서버 응답 확인
+                console.log("isReturningUser:", result.isReturningUser); // 재입장 여부 확인
+
+
+                fetchMessages(chatRoomId, isReturningUser); // 재입장 여부에 따라서 메세지 로드
+                setupStompClient(chatRoomId);
+            } catch (error) {
+                console.error("채팅방 입장 중 오류 발생: ", error);
+            }
+        }
+
+        // 채팅방 내옹을 초기화하는 함수
+        function clearChatWindow() {
+            console.log("Clearing chat window");
+            chatContent.innerHTML = ''; // 기존 메세지를 모두 제거
+        }
+        
+
+        function fetchMessages(chatRoomId, isReturningUser) {
             fetch(`/api/chatRoom/${chatRoomId}/messages`, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
@@ -144,19 +181,18 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => response.json())
                 .then(messages => {
-                    // 응답이 배열인지 확인
-                    if (Array.isArray(messages)) {
-                        chatContent.innerHTML = '';
+                    chatContent.innerHTML = ''; // 기존 메시지 초기화
+                    if (!isReturningUser) {
+                        // 처음 입장한 경우만 기존 메시지를 모두 표시
                         messages.forEach(message => {
                             showMessageOutput(message);
                         });
                     } else {
-                        console.error('서버에서 올바른 형식의 데이터를 받지 못했습니다:', messages);
+                        console.log("재입장한 유저 - 이전 메시지를 초기화하고 새 메시지만 표시합니다.");
                     }
                 })
                 .catch(error => console.error('채팅 데이터를 가져오던 중 오류 발생:', error));
         }
-
 
         // 사용자별로 마지막 시간대의 시간 정보를 저장
         let lastMessageTime = null; // 마지막 시간대의 시간 정보를 저장

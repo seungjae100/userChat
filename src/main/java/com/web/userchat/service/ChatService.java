@@ -63,30 +63,56 @@ public class ChatService {
     }
 
 
+    public Map<String, Object> enterChatRoom(String chatRoomId, String username) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-    @Transactional
-    public boolean leaveChatRoom(ChatRoom chatRoom, String email) {
+        boolean isReturningUser = isReturningUser(chatRoom, username);
 
-        userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // userCount 감소
-        chatRoom.setUserCount(chatRoom.getUserCount() - 1);
-        chatRoomRepository.save(chatRoom);
-
-        // userCount 가 0 이 아니면 방 삭제하지 않고 종료
-        if (chatRoom.getUserCount() > 0) {
-            return false; // 방이 삭제되지 않음
+        // userCount가 2보다 작을 때만 증가
+        if (chatRoom.getUserCount() < 2) {
+            chatRoom.setUserCount(chatRoom.getUserCount() + 1);
+            chatRoomRepository.save(chatRoom);
         }
-        // userCount 가 0이면 채팅방과 메세지 삭제
-        chatMessageRepository.deleteByChatRoom(chatRoom);
-        chatRoomRepository.delete(chatRoom);
-        return true;
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("isReturningUser", isReturningUser);
+        response.put("userCount", chatRoom.getUserCount());
+
+        return response;
+    }
+
+    public String leaveChatRoom(String chatRoomId, String username) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        // userCount가 0보다 클 때만 감소
+        if (chatRoom.getUserCount() > 0) {
+            chatRoom.setUserCount(chatRoom.getUserCount() - 1);
+            chatRoomRepository.save(chatRoom);
+        }
+
+        if (chatRoom.getUserCount() == 0) {
+            chatRoomRepository.delete(chatRoom);
+            return "채팅방이 삭제되었습니다.";
+        } else {
+            return username + "님이 채팅방을 나갔습니다.";
+        }
+    }
+
+
+    public boolean isReturningUser(ChatRoom chatRoom, String username) {
+        // 현재 채팅방에 사용자 이름을 포함하는지를 기준으로 재입장 여부를 판별합니다.
+        return chatRoom.getMessageList().stream().anyMatch(message -> message.getSender().equals(username));
     }
 
 
     public void saveMessage(ChatMessage chatMessage) {
-        chatMessageRepository.save(chatMessage);
+        if (chatMessage != null) {
+            chatMessageRepository.save(chatMessage);
+        } else {
+            System.out.println("ChatMessage가 null입니다.");
+        }
     }
 
     public List<ChatMessage> getChatMessages(ChatRoom chatRoom) {

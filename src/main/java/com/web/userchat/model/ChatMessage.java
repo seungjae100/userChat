@@ -28,15 +28,6 @@ public class ChatMessage {
     private ChatRoom chatRoom; // ChatRoom 객체로 변경
     private LocalDateTime timestamp; // 전송 시간
 
-    public ChatMessage(Long id, MessageType type, String sender, String receiver, String content, ChatRoom chatRoom, LocalDateTime timestamp) {
-        this.id = id;
-        this.type = type;
-        this.sender = sender;
-        this.receiver = receiver;
-        this.content = content;
-        this.chatRoom = chatRoom;
-        this.timestamp = timestamp;
-    }
 
     @PrePersist
     public void prePersist() {

@@ -84,24 +84,24 @@ public class ChatController {
         return ResponseEntity.ok(chatRoomId);
     }
 
+    @PostMapping("/chat/enter")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> enterChatRoom(@RequestParam String chatRoomId, Principal principal) {
+        String username = principal.getName();
+        Map<String, Object> response = chatService.enterChatRoom(chatRoomId, username);
+        return ResponseEntity.ok(response);
+    }
 
-    // 채팅방 나가기
+
     @PostMapping("/chat/leave")
     @ResponseBody
     public ResponseEntity<String> leaveChatRoom(@RequestParam String chatRoomId, Principal principal) {
-        String currentUsername = principal.getName();
-
-        Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findById(chatRoomId);
-        if (chatRoomOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("채팅방을 찾을 수 없습니다.");
-        }
-
-        ChatRoom chatRoom = chatRoomOptional.get();
-        boolean isDeleted = chatService.leaveChatRoom(chatRoom, currentUsername);
-
-        // 단순 성공 응답만 반환
-        return ResponseEntity.ok("채팅방에서 나갔습니다.");
+        String username = principal.getName();
+        String message = chatService.leaveChatRoom(chatRoomId, username);
+        return ResponseEntity.ok(message);
     }
+
+
 
 
 
