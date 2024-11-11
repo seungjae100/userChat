@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const newUrl = `/chatRoom/${chatRoomId}`;
                         history.pushState(null, '', newUrl);
 
-                        joinRoom(chatRoomId);
+                        await joinRoom(chatRoomId);
 
 
                     } else {
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        let isReturningUser = true;
+
 
         async function joinRoom(chatRoomId) {
             try {
@@ -147,17 +147,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 const result = await response.json();
 
-                // 서버로부터 받은 재입장 여부를 변수에 설정
-                isReturningUser = result.isReturningUser;
 
-                // 재입장 여부 확인
+                console.log("Server response:", result);
+
+                // 서버로부터 받은 재입장 여부를 세션 스토리지에 저장
+                sessionStorage.setItem(`isReturningUser_${chatRoomId}`, result.isReturningUser);
+
+                // 세션 스토리지에서 재입장 여부를 확인
+                const isReturningUser = sessionStorage.getItem(`isReturningUser_${chatRoomId}`) === 'true';
+                console.log("Retrieved from session storage:", isReturningUser);
+
+                // 재입장 여부에 따라 채팅창 초기화
                 if (isReturningUser) {
+                    console.log("Returning user detected - clearing chat window.");
                     clearChatWindow();
                 }
-
-                console.log("Server response:", result); // 서버 응답 확인
-                console.log("isReturningUser:", result.isReturningUser); // 재입장 여부 확인
-
 
                 fetchMessages(chatRoomId, isReturningUser); // 재입장 여부에 따라서 메세지 로드
                 setupStompClient(chatRoomId);
@@ -166,12 +170,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // 채팅방을 떠날 때 세션 스토리지에서 해당 채팅방의 상태를 제거
+        function leaveChatRoom(chatRoomId) {
+            sessionStorage.removeItem(`isReturningUser_${chatRoomId}`);
+            hideExitChatButton();
+        }
+
         // 채팅방 내옹을 초기화하는 함수
         function clearChatWindow() {
-            console.log("Clearing chat window");
+            console.log("Clearing chat window - 이전 메시지 삭제");
             chatContent.innerHTML = ''; // 기존 메세지를 모두 제거
         }
-        
 
         function fetchMessages(chatRoomId, isReturningUser) {
             fetch(`/api/chatRoom/${chatRoomId}/messages`, {
@@ -181,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => response.json())
                 .then(messages => {
+                    console.log("Fetching messages - isReturningUser:", isReturningUser);
                     chatContent.innerHTML = ''; // 기존 메시지 초기화
                     if (!isReturningUser) {
                         // 처음 입장한 경우만 기존 메시지를 모두 표시

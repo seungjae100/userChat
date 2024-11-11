@@ -67,7 +67,9 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-        boolean isReturningUser = isReturningUser(chatRoom, username);
+        boolean isReturningUser = chatRoom.getMessageList().stream()
+                .anyMatch(message -> message.getSender().equals(username));
+        System.out.println("isReturningUser for " + username + ": " + isReturningUser);  // 디버그용 로그
 
         // userCount가 2보다 작을 때만 증가
         if (chatRoom.getUserCount() < 2) {
@@ -78,6 +80,8 @@ public class ChatService {
         Map<String, Object> response = new HashMap<>();
         response.put("isReturningUser", isReturningUser);
         response.put("userCount", chatRoom.getUserCount());
+
+        System.out.println("Response: " + response);
 
         return response;
     }
