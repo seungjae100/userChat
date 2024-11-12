@@ -114,29 +114,6 @@ document.addEventListener('DOMContentLoaded', function () {
             chatContent.scrollTop = chatContent.scrollHeight;
         }
 
-        function setupStompClient(chatRoomId) {
-            const socket = new SockJS('/chat');
-            stompClient = Stomp.over(socket);
-
-            stompClient.connect({}, function (frame) {
-                console.log('Connected: ' + frame);
-                stompClient.subscribe(`/topic/chat/${chatRoomId}`, function (message) {
-                    const parsedMessage = JSON.parse(message.body);
-                        showMessageOutput(parsedMessage);
-                        scrollToBottom();
-
-                });
-
-                const subscribeMessage = {
-                    type: 'SUBSCRIBE',
-                    roomId: chatRoomId
-                };
-                stompClient.send(`/app/chat.subscribe/${chatRoomId}`, {}, JSON.stringify(subscribeMessage));
-            });
-        }
-
-
-
         async function joinRoom(chatRoomId) {
             try {
                 const response = await fetch(`/chat/enter?chatRoomId=${encodeURIComponent(chatRoomId)}`, {
@@ -147,42 +124,87 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 const result = await response.json();
 
-
-                console.log("Server response:", result);
-
                 // 서버로부터 받은 재입장 여부를 세션 스토리지에 저장
                 sessionStorage.setItem(`isReturningUser_${chatRoomId}`, result.isReturningUser);
+                console.log("Stored in session storage:", sessionStorage.getItem(`isReturningUser_${chatRoomId}`)); // 세션 스토리지 저장 확인
 
-                // 세션 스토리지에서 재입장 여부를 확인
-                const isReturningUser = sessionStorage.getItem(`isReturningUser_${chatRoomId}`) === 'true';
-                console.log("Retrieved from session storage:", isReturningUser);
+                // 채팅창 초기화 및 WebSocket 설정
+                setupChatRoom(chatRoomId);
 
-                // 재입장 여부에 따라 채팅창 초기화
-                if (isReturningUser) {
-                    console.log("Returning user detected - clearing chat window.");
-                    clearChatWindow();
-                }
-
-                fetchMessages(chatRoomId, isReturningUser); // 재입장 여부에 따라서 메세지 로드
-                setupStompClient(chatRoomId);
             } catch (error) {
                 console.error("채팅방 입장 중 오류 발생: ", error);
             }
         }
 
-        // 채팅방을 떠날 때 세션 스토리지에서 해당 채팅방의 상태를 제거
-        function leaveChatRoom(chatRoomId) {
-            sessionStorage.removeItem(`isReturningUser_${chatRoomId}`);
-            hideExitChatButton();
+        function setupChatRoom(chatRoomId) {
+            // 세션 스토리지에서 재입장 여부를 확인
+            const isReturningUser = sessionStorage.getItem(`isReturningUser_${chatRoomId}`) === 'true';
+            console.log("Setting up chat room. Is returning user:", isReturningUser); // 설정 시작 확인
+
+            if (isReturningUser) {
+                console.log("Clearing chat window for returning user..."); // 초기화 시작 확인
+                clearChatWindow();
+                console.log("Chat window cleared"); // 초기화 완료 확인
+                lastDisplayedDate = null; // 날짜 표시 초기화 추가
+            }
+
+            // 재입장이 아닌 경우에만 이전 메시지를 가져옴
+            if (!isReturningUser) {
+                console.log("Fetching messages for new user..."); // 메시지 가져오기 시작 확인
+                fetchMessages(chatRoomId);
+            }
+            // Websocket 설정
+            setupStompClient(chatRoomId);
+        }
+
+        // WebSocket 연결 전에 이전 연결을 정리하는 함수
+        function cleanupPreviousConnection() {
+            if (stompClient !== null) {
+                console.log("Disconnecting previous connection..."); // 이전 연결 정리 확인
+                try {
+                    stompClient.disconnect();
+                } catch (e) {
+                    console.error("Error during disconnect:", e);
+                }
+                stompClient = null;
+            }
+        }
+
+        function setupStompClient(chatRoomId) {
+            cleanupPreviousConnection();
+
+            const socket = new SockJS('/chat');
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+                stompClient.subscribe(`/topic/chat/${chatRoomId}`, function (message) {
+                    const parsedMessage = JSON.parse(message.body);
+                    console.log("Received message:", parsedMessage); // 수신된 메시지 확인
+                    showMessageOutput(parsedMessage);
+                    scrollToBottom();
+                });
+
+                const subscribeMessage = {
+                    type: 'SUBSCRIBE',
+                    roomId: chatRoomId
+                };
+                stompClient.send(`/app/chat.subscribe/${chatRoomId}`, {}, JSON.stringify(subscribeMessage));
+            });
         }
 
         // 채팅방 내옹을 초기화하는 함수
         function clearChatWindow() {
-            console.log("Clearing chat window - 이전 메시지 삭제");
-            chatContent.innerHTML = ''; // 기존 메세지를 모두 제거
+            console.log("Clearing chat window - Previous content:", chatContent.innerHTML); // 초기화 전 내용 확인
+            chatContent.innerHTML = '';
+            console.log("Chat window cleared - Current content:", chatContent.innerHTML); // 초기화 후 내용 확인
+            lastDisplayedDate = null;
+            lastMessageTime = null;
+            lastMessageElement = null;
+            lastSender = null;
         }
 
-        function fetchMessages(chatRoomId, isReturningUser) {
+        function fetchMessages(chatRoomId) {
             fetch(`/api/chatRoom/${chatRoomId}/messages`, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
@@ -190,16 +212,11 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => response.json())
                 .then(messages => {
-                    console.log("Fetching messages - isReturningUser:", isReturningUser);
-                    chatContent.innerHTML = ''; // 기존 메시지 초기화
-                    if (!isReturningUser) {
-                        // 처음 입장한 경우만 기존 메시지를 모두 표시
-                        messages.forEach(message => {
-                            showMessageOutput(message);
-                        });
-                    } else {
-                        console.log("재입장한 유저 - 이전 메시지를 초기화하고 새 메시지만 표시합니다.");
-                    }
+                    chatContent.innerHTML = '';
+                    messages.forEach(message => {
+                        showMessageOutput(message);
+                    });
+                    scrollToBottom();
                 })
                 .catch(error => console.error('채팅 데이터를 가져오던 중 오류 발생:', error));
         }
@@ -212,7 +229,12 @@ document.addEventListener('DOMContentLoaded', function () {
         function showMessageOutput(message) {
             const isSentByMe = message.sender === currentEmail || message.sender === currentEmail.split('@')[0];
             const messageDate = new Date(message.timestamp);
-            const formattedDate = messageDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            const formattedDate = messageDate.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
 
             // 날짜가 변경될 경우, 중앙에 날짜를 시스템 메시지로 표시
             if (lastDisplayedDate !== formattedDate) {
@@ -265,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const timeSpan = document.createElement('span');
             timeSpan.classList.add('message-time');
-            timeSpan.textContent = messageTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            timeSpan.textContent = messageTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 
             // 시간 위치 설정
             if (isSentByMe) {
@@ -280,7 +302,6 @@ document.addEventListener('DOMContentLoaded', function () {
             lastMessageElement = messageDiv;
             lastSender = message.sender;
             lastMessageTime = currentHoursMinutes;
-
             // 스크롤을 가장 아래로 이동
             scrollToBottom();
         }
@@ -327,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // 모달에서 아니오 버튼 클릭 시 모달 닫기
-        cancelLeaveBtn.addEventListener('click', function() {
+        cancelLeaveBtn.addEventListener('click', function () {
             closeModal();
         });
         // 초기화 시 모달을 숨김

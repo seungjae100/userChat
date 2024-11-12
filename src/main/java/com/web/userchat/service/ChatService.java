@@ -67,11 +67,19 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-        boolean isReturningUser = chatRoom.getMessageList().stream()
-                .anyMatch(message -> message.getSender().equals(username));
-        System.out.println("isReturningUser for " + username + ": " + isReturningUser);  // 디버그용 로그
+        // 이메일 형식에서 username 부분만 추출
+        String normalizedUsername = username.split("@")[0];
 
-        // userCount가 2보다 작을 때만 증가
+        // 메세지 리스트를 확인하여 사용자가 이전에 채팅방에 있었는지 확인
+        boolean isReturningUser = chatRoom.getMessageList().stream()
+                .anyMatch(message -> {
+                    String messageSender = message.getSender().split("@")[0];
+                    return messageSender.equals(normalizedUsername);
+                });
+
+        System.out.println("Checking return status for " + username + ": " + isReturningUser); // 디버깅용
+
+        // userCount 업데이트
         if (chatRoom.getUserCount() < 2) {
             chatRoom.setUserCount(chatRoom.getUserCount() + 1);
             chatRoomRepository.save(chatRoom);
@@ -80,8 +88,6 @@ public class ChatService {
         Map<String, Object> response = new HashMap<>();
         response.put("isReturningUser", isReturningUser);
         response.put("userCount", chatRoom.getUserCount());
-
-        System.out.println("Response: " + response);
 
         return response;
     }
@@ -102,12 +108,6 @@ public class ChatService {
         } else {
             return username + "님이 채팅방을 나갔습니다.";
         }
-    }
-
-
-    public boolean isReturningUser(ChatRoom chatRoom, String username) {
-        // 현재 채팅방에 사용자 이름을 포함하는지를 기준으로 재입장 여부를 판별합니다.
-        return chatRoom.getMessageList().stream().anyMatch(message -> message.getSender().equals(username));
     }
 
 
