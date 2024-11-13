@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (accessToken) {
         const payload = JSON.parse(atob(accessToken.split('.')[1]));
         currentEmail = payload.sub;
-
         chatLinks.forEach(link => {
             link.addEventListener('click', async function (event) {
                 event.preventDefault();
@@ -34,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const chatUserEmail = link.getAttribute('data-user-email');
 
                 // 채팅방 이름을 위한 username
-                const chatUsername = link.getAttribute('data-user-username');
+                const chatUsername = link.getAttribute('data-user-username')
 
                 if (!chatUsername || !chatUserEmail) {
                     console.error("선택된 유저 정보를 찾을 수 없습니다.");
@@ -126,7 +125,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // 서버로부터 받은 재입장 여부를 세션 스토리지에 저장
                 sessionStorage.setItem(`isReturningUser_${chatRoomId}`, result.isReturningUser);
-                console.log("Stored in session storage:", sessionStorage.getItem(`isReturningUser_${chatRoomId}`)); // 세션 스토리지 저장 확인
 
                 // 채팅창 초기화 및 WebSocket 설정
                 setupChatRoom(chatRoomId);
@@ -139,18 +137,14 @@ document.addEventListener('DOMContentLoaded', function () {
         function setupChatRoom(chatRoomId) {
             // 세션 스토리지에서 재입장 여부를 확인
             const isReturningUser = sessionStorage.getItem(`isReturningUser_${chatRoomId}`) === 'true';
-            console.log("Setting up chat room. Is returning user:", isReturningUser); // 설정 시작 확인
 
             if (isReturningUser) {
-                console.log("Clearing chat window for returning user..."); // 초기화 시작 확인
                 clearChatWindow();
-                console.log("Chat window cleared"); // 초기화 완료 확인
                 lastDisplayedDate = null; // 날짜 표시 초기화 추가
             }
 
             // 재입장이 아닌 경우에만 이전 메시지를 가져옴
             if (!isReturningUser) {
-                console.log("Fetching messages for new user..."); // 메시지 가져오기 시작 확인
                 fetchMessages(chatRoomId);
             }
             // Websocket 설정
@@ -160,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // WebSocket 연결 전에 이전 연결을 정리하는 함수
         function cleanupPreviousConnection() {
             if (stompClient !== null) {
-                console.log("Disconnecting previous connection..."); // 이전 연결 정리 확인
                 try {
                     stompClient.disconnect();
                 } catch (e) {
