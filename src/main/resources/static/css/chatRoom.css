@@ -37,6 +37,7 @@ body {
 }
 
 .user-list {
+    position: relative;
     width: 30%;
     background: #f9f9f9; /* 밝은 배경색으로 구분 */
     padding: 20px;
@@ -285,14 +286,14 @@ body {
 
 /* 홈으로 가는 이모티콘 */
 .home-icon-container {
-    position: fixed;
+    position: absolute;
     bottom: 20px;
     left: 20px;
 }
 
 .home-icon {
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
     cursor: pointer;
 }
 
