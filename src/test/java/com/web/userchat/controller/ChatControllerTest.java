@@ -1,6 +1,6 @@
 package com.web.userchat.controller;
 
-import com.web.userchat.dto.ChattingRoomDTO;
+import com.web.userchat.dto.ChatRoomDTO;
 import com.web.userchat.service.ChatService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ class ChatControllerTest {
     void getChattingRoom() throws Exception {
         String user1 = "user1";
         String user2 = "user2";
-        ChattingRoomDTO mockRoom = new ChattingRoomDTO();
+        ChatRoomDTO mockRoom = new ChatRoomDTO();
         mockRoom.setChattingRoomId("user1_user2");
 
         given(chatservice.createChattingRoom(user1, user2)).willReturn(mockRoom);
