@@ -138,13 +138,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // 세션 스토리지에서 재입장 여부를 확인
             const isReturningUser = sessionStorage.getItem(`isReturningUser_${chatRoomId}`) === 'true';
 
-            if (isReturningUser) {
-                clearChatWindow();
-                lastDisplayedDate = null; // 날짜 표시 초기화 추가
-            }
-
-            // 재입장이 아닌 경우에만 이전 메시지를 가져옴
-            if (!isReturningUser) {
+            // **홈화면 이동 후 복귀는 기존 메시지 유지**
+            if (isReturningUser && sessionStorage.getItem(`chatContent_${chatRoomId}`)) {
+                // 세션 스토리지에서 이전 채팅 내용을 복구
+                chatContent.innerHTML = sessionStorage.getItem(`chatContent_${chatRoomId}`);
+                lastDisplayedDate = sessionStorage.getItem(`lastDisplayedDate_${chatRoomId}`);
+            } else if (!isReturningUser) {
+                // 첫 입장인 경우 서버에서 메시지 로드
                 fetchMessages(chatRoomId);
             }
             // Websocket 설정
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 lastDisplayedDate = formattedDate;
             }
 
-            // 시스템 메세지 확인
+            // 시스템 메시지 처리
             if (message.type === 'SYSTEM') {
                 const systemMessageDiv = document.createElement('div');
                 systemMessageDiv.classList.add('system-message');
@@ -248,56 +248,52 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // 현재 메시지의 시간 추출
-            const messageTime = new Date(message.timestamp);
-            const currentHoursMinutes = messageTime.getHours() + ':' + messageTime.getMinutes();
+            // 채팅 메시지 DOM 생성
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', isSentByMe ? 'message-sent' : 'message-received');
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+            messageContent.textContent = message.content;
 
-            // 메시지 그룹 컨테이너 생성 또는 현재 그룹을 가져옴
+            // 메시지 요소 추가
+            messageDiv.appendChild(messageContent);
+
+            // 메시지 그룹화: 이전 메시지와 동일 그룹인지 확인
             let messageGroup = document.querySelector('.message-group:last-child');
-            if (!messageGroup || lastSender !== message.sender || lastMessageTime !== currentHoursMinutes) {
+            if (!messageGroup || lastSender !== message.sender || lastMessageTime !== messageDate.toTimeString().slice(0, 5)) {
                 messageGroup = document.createElement('div');
                 messageGroup.classList.add('message-group', isSentByMe ? 'message-sent-group' : 'message-received-group');
                 chatContent.appendChild(messageGroup);
             }
 
-            // 메시지 요소 생성
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', isSentByMe ? 'message-sent' : 'message-received');
-
-            const messageContent = document.createElement('div');
-            messageContent.classList.add('message-content');
-            messageContent.textContent = message.content;
-
-            // 메시지 DOM 추가
-            messageDiv.appendChild(messageContent);
             messageGroup.appendChild(messageDiv);
 
-            // 시간 표시 업데이트: 같은 시간대의 그룹이면 마지막 메시지의 하단에 시간 표시
+            // 메시지 시간 표시
+            const timeSpan = document.createElement('span');
+            timeSpan.classList.add('message-time');
+            timeSpan.textContent = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            timeSpan.classList.add(isSentByMe ? 'time-right' : 'time-left');
+
+            // 이전 시간 표시를 대체
             const existingTimeSpan = messageGroup.querySelector('.message-time');
             if (existingTimeSpan) {
                 messageGroup.removeChild(existingTimeSpan);
             }
-
-            const timeSpan = document.createElement('span');
-            timeSpan.classList.add('message-time');
-            timeSpan.textContent = messageTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-
-            // 시간 위치 설정
-            if (isSentByMe) {
-                timeSpan.classList.add('time-right');
-            } else {
-                timeSpan.classList.add('time-left');
-            }
-
             messageGroup.appendChild(timeSpan);
 
-            // 마지막 메시지 요소와 보낸 사용자 업데이트
-            lastMessageElement = messageDiv;
+            // 마지막 메시지 정보 갱신
             lastSender = message.sender;
-            lastMessageTime = currentHoursMinutes;
+            lastMessageTime = messageDate.toTimeString().slice(0, 5);
+
             // 스크롤을 가장 아래로 이동
             scrollToBottom();
+
+            // **채팅 내용을 세션 스토리지에 저장**
+            const chatRoomId = window.location.pathname.split("/")[2]; // 현재 채팅방 ID
+            sessionStorage.setItem(`chatContent_${chatRoomId}`, chatContent.innerHTML);
+            sessionStorage.setItem(`lastDisplayedDate_${chatRoomId}`, lastDisplayedDate);
         }
+
 
         // 모달을 열고 닫는 함수
         function openModal() {
@@ -319,6 +315,11 @@ document.addEventListener('DOMContentLoaded', function () {
         // 모달에서 예 버튼 클릭 시 나가기 요청
         confirmLeaveBtn.addEventListener('click', function () {
             const chatRoomId = window.location.pathname.split("/")[2];
+
+            // 채팅방 데이터를 세션 스토리지에서 삭제
+            sessionStorage.removeItem(`chatContent_${chatRoomId}`);
+            sessionStorage.removeItem(`lastDisplayedDate_${chatRoomId}`);
+            sessionStorage.removeItem(`isReturningUser_${chatRoomId}`);
 
             fetch(`/chat/leave?chatRoomId=${encodeURIComponent(chatRoomId)}`, {
                 method: 'POST',
