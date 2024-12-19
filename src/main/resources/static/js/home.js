@@ -18,10 +18,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (accessToken) {
             showLoggedInState();
-            console.log("AccessToken found:", accessToken);
         } else {
             showLoggedOutState();
-            console.log("Access token not found.");
         }
     }
 
