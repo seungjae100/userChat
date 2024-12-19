@@ -1,0 +1,136 @@
+/* 홈 화면을 위한 CSS 스타일 */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.chat-image {
+    flex: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #e0e0e0;
+}
+
+.chat-image p {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+}
+
+.login-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.logo h1 {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 40px;
+}
+
+.user-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 로그인 버튼 */
+#login-link {
+    display: block;
+    width: 200px;
+    margin-bottom: 20px;
+    padding: 15px;
+    text-align: center;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+#login-link:hover {
+    background-color: #0056b3;
+}
+
+/* 회원가입 링크 */
+#register-link {
+    color: #007bff;
+    font-size: 14px;
+    text-decoration: none;
+    margin-bottom: 30px;
+}
+
+#register-link:hover {
+    text-decoration: underline;
+}
+
+/* 로그아웃 버튼 */
+#logout-button {
+    color: #007bff;
+    font-size: 14px;
+    text-decoration: none;
+    margin-bottom: 30px;
+}
+
+#logout-button:hover {
+    background-color: #5a6268;
+}
+
+/* 채팅 참여 버튼 */
+#chat-button {
+    display: block;
+    width: 200px;
+    margin-bottom: 20px;
+    padding: 15px;
+    text-align: center;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+#chat-button:hover {
+    background-color: #218838;
+}
+
+/* 기본 버튼 스타일 제거 */
+button {
+    outline: none;
+}
+
+/* 미디어 쿼리: 반응형 디자인 */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .chat-image, .login-container {
+        border-right: none;
+        width: 100%;
+    }
+
+    .chat-image {
+        border-bottom: 1px solid #e0e0e0;
+        padding: 20px;
+    }
+}

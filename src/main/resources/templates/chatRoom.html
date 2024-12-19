@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User List</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/chatRoom.css}">
+</head>
+<body>
+<div class="chat-container">
+    <!-- 사용자 목록 -->
+    <div class="user-list">
+        <form method="get" action="/users/search">
+            <input type="text" name="query" placeholder="유저이름을 입력하세요" class="search-box">
+            <button type="submit" class="search-button">검색</button>
+        </form>
+        <ul>
+            <!-- 현재 사용자 정보 표시 -->
+            <li class="user-item">
+                <span class="username" th:text="${currentUsername}"></span>
+            </li>
+
+            <!-- 다른 사용자 목록 -->
+            <li th:each="user : ${allUsers}" class="user-item">
+                <span class="username" th:text="${user.username}"></span>
+                <!-- 온라인/오프라인 상태 표시 -->
+                <span th:if="${#sets.contains(onlineUsers, user.username)}" class="status-online">온라인</span>
+                <span th:if="${!#sets.contains(onlineUsers, user.username)}" class="status-offline">오프라인</span>
+                <!-- 채팅 링크 -->
+                <a href="#"
+                   class="chat-link"
+                   th:attr="data-user-email=${user.email},
+                   data-user-username=${user.username}">채팅하기</a>
+            </li>
+        </ul>
+        <div class="home-icon-container">
+            <a href="/">
+                <img src="/images/home_icon.png" alt="Home" class="home-icon">
+            </a>
+        </div>
+    </div>
+
+
+    <!-- 채팅방 -->
+    <div class="chat-room">
+        <div class="chat-header">
+            <h3 id="current-chat-user">채팅 상대를 선택하세요</h3>
+            <a href="#" id="exit-chat-button" style="display: none">
+                <img src="/images/exit_icon.png" alt="나가기" class="exit-icon">
+            </a>
+        </div>
+        <!--채팅방 나가기 모달-->
+        <div id="leaveModal" class="modal">
+            <div class="modal-content">
+                <p id="modalTitle">채팅방을 나가시겠습니까?</p>
+                <div class="modal-buttons">
+                    <button id="confirmLeaveBtn" class="modal-button leave">예</button>
+                    <button id="cancelLeaveBtn" class="modal-button cancel">아니오</button>
+                </div>
+            </div>
+        </div>
+        <div class="chat-content" id="chat-content"></div>
+        <div class="chat-input">
+            <input type="text" placeholder="메세지를 입력하세요" id="message-input">
+            <button id="send-button">➤</button>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/chatRoom.js}"></script>
+</body>
+</html>

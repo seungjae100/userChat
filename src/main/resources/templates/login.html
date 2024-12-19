@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+    <div class="loginForm">
+        <h1>Login</h1>
+        <!-- 에러메시지 표시 -->
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+        <form th:action="@{/users/login}" method="post">
+            <div class="userEmail">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="이메일을 입력하세요" required>
+            </div>
+            <div class="password">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+            </div>
+            <div>
+                <button type="submit" class="btn">Login</button>
+            </div>
+        </form>
+        <!-- 회원가입 링크 추가 -->
+        <div class="register-link">
+            계정이 없으신가요? <a href="/users/register" class="link">회원가입</a>
+        </div>
+    </div>
+</body>
+</html>
