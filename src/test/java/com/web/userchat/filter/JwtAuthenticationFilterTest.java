@@ -1,5 +1,6 @@
 package com.web.userchat.filter;
 
+import com.web.userchat.jwt.JwtAuthenticationFilter;
 import com.web.userchat.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

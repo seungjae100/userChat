@@ -1,6 +1,6 @@
 package com.web.userchat.controller;
 
-import com.web.userchat.dto.LoginDTO;
+import com.web.userchat.model.LoginDTO;
 import com.web.userchat.service.ChatService;
 import com.web.userchat.service.UserService;
 import jakarta.servlet.http.Cookie;

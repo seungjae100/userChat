@@ -1,6 +1,6 @@
 package com.web.userchat.controller;
 
-import com.web.userchat.dto.ChatRoomDTO;
+import com.web.userchat.model.ChatRoomDTO;
 import com.web.userchat.service.ChatService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

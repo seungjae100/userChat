@@ -1,7 +1,6 @@
 package com.web.userchat.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.web.userchat.dto.LoginDTO;
 import com.web.userchat.model.User;
 import com.web.userchat.repository.UserRepository;
 import jakarta.servlet.http.Cookie;

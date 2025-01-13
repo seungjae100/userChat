@@ -1,4 +1,4 @@
-package com.web.userchat.filter;
+package com.web.userchat.jwt;
 
 import com.web.userchat.util.JwtUtil;
 import jakarta.servlet.FilterChain;

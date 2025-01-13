@@ -1,6 +1,6 @@
 package com.web.userchat.config;
 
-import com.web.userchat.filter.JwtAuthenticationFilter;
+import com.web.userchat.jwt.JwtAuthenticationFilter;
 import com.web.userchat.service.CustomUserDetailsService;
 import com.web.userchat.util.JwtUtil;
 import org.springframework.context.annotation.Bean;
