@@ -4,12 +4,11 @@ package com.web.userchat.model;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 public class User {
 
-    private Long id; // User 고유 아이디
+    private Long id; // 사용자 고유 아이디
 
     private String username; // 사용자 이름
 

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.web.userchat.mapper.UserMapper">
+
+    <!-- 회원가입 유저데이터 저장 -->
+    <insert id="save" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (
+            email,
+            username,
+            password
+        ) VALUES (
+            #{email},
+            #{username},
+            #{password}
+        )
+    </insert>
+
+    <!-- 회원 고유 아이디로 조회 -->
+    <select id="findById" resultType="User">
+        SELECT
+            id,
+            email,
+            username,
+            password
+        FROM users
+        WHERE id = #{id}
+    </select>
+
+    <!-- 회원 이메일로 조회 -->
+    <select id="findByEmail" resultType="User">
+        SELECT
+            id,
+            email,
+            username,
+            password
+        FROM users
+        WHERE email = #{email}
+    </select>
+
+    <!-- 회원 정보 수정 -->
+    <update id="update" parameterType="User">
+        UPDATE users
+        SET username = #{useranme},
+            password = #{password}
+        WHERE email = #{email}
+    </update>
+
+    <!-- 회원 삭제 -->
+    <delete id="delete">
+        DELETE FROM users
+        WHERE id = #{id}
+    </delete>
+</mapper>
