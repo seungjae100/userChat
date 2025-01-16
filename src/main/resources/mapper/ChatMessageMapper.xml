@@ -3,6 +3,14 @@
 
 <mapper namespace="com.web.userchat.mapper.ChatMessageMapper">
 
+    <resultMap id="chatMessageMap" type="ChatMessage">
+        <result property="roomId" column="room_id"/>
+        <result property="sender" column="sender"/>
+        <result property="message" column="message"/>
+        <result property="type" column="type"/>
+        <result property="sendTime" column="send_time"/>
+    </resultMap>
+
     <!-- 메세지 입력 시 저장 -->
     <insert id="save" parameterType="ChatMessage" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO chat_messages (
@@ -21,7 +29,7 @@
     </insert>
 
     <!-- 채팅방 고유아이디로 메세지 조회 -->
-    <select id="findByRoomId" resultType="ChatMessage">
+    <select id="findByRoomId" resultMap="chatMessageMap">
         SELECT
             id,
             room_id,

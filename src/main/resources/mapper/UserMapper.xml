@@ -3,6 +3,14 @@
 
 <mapper namespace="com.web.userchat.mapper.UserMapper">
 
+    <resultMap id="userMap" type="User">
+        <id property="id" column="id"/>
+        <result property="email" column="email"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+    </resultMap>
+
+
     <!-- 회원가입 유저데이터 저장 -->
     <insert id="save" parameterType="User" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO users (
@@ -17,7 +25,7 @@
     </insert>
 
     <!-- 회원 고유 아이디로 조회 -->
-    <select id="findById" resultType="User">
+    <select id="findById" resultMap="userMap">
         SELECT
             id,
             email,
@@ -28,7 +36,7 @@
     </select>
 
     <!-- 회원 이메일로 조회 -->
-    <select id="findByEmail" resultType="User">
+    <select id="findByEmail" resultMap="userMap">
         SELECT
             id,
             email,
@@ -41,7 +49,7 @@
     <!-- 회원 정보 수정 -->
     <update id="update" parameterType="User">
         UPDATE users
-        SET username = #{useranme},
+        SET username = #{username},
             password = #{password}
         WHERE email = #{email}
     </update>

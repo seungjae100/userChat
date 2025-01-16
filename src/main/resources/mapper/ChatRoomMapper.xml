@@ -3,6 +3,13 @@
 
 <mapper namespace="com.web.userchat.mapper.ChatRoomMapper">
 
+    <resultMap id="chatRoomMap" type="ChatRoom">
+        <result property="roomId" column="room_Id"/>
+        <result property="roomName" column="room_name"/>
+        <result property="userCount" column="user_count"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
     <!-- 채팅방 저장 -->
     <insert id="save" parameterType="ChatRoom" useGeneratedKeys="true" keyProperty="roomId">
         INSERT INTO chat_rooms (room_name, user_count, created_at)
@@ -10,17 +17,18 @@
     </insert>
 
     <!-- 채팅방 고유 아이디로 조회 -->
-    <select id="findById" resultType="ChatRoom">
+    <select id="findById" resultMap="chatRoomMap">
         SELECT
             room_id,
             room_name,
-            created_at
+            created_at,
+            user_count
         FROM chat_rooms
         WHERE room_id = #{roomId}
     </select>
 
     <!-- 모든 채팅방을 조회 -->
-    <select id="findAll" resultType="ChatRoom">
+    <select id="findAll" resultMap="chatRoomMap">
         SELECT
             room_id,
             room_name,
