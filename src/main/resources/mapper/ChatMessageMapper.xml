@@ -4,7 +4,7 @@
 <mapper namespace="com.web.userchat.mapper.ChatMessageMapper">
 
     <resultMap id="chatMessageMap" type="ChatMessage">
-        <result property="roomId" column="room_id"/>
+        <id property="roomId" column="room_id"/>
         <result property="sender" column="sender"/>
         <result property="message" column="message"/>
         <result property="type" column="type"/>

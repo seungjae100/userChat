@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.web.userchat.mapper.UserMapper">
-
+    <!-- 기본 User resultMap -->
     <resultMap id="userMap" type="User">
         <id property="id" column="id"/>
         <result property="email" column="email"/>
@@ -10,6 +10,26 @@
         <result property="password" column="password"/>
     </resultMap>
 
+    <!-- User 와 ChatRoom 의 1 : N 의 관계 -->
+    <resultMap id="userWithChatRooms" type="User" extends="userMap">
+        <collection property="chatRooms" ofType="ChatRoom">
+            <id property="roomId" column="room_Id"/>
+            <result property="roomName" column="room_name"/>
+            <result property="userCount" column="user_count"/>
+            <result property="createdAt" column="created_at"/>
+        </collection>
+    </resultMap>
+
+    <!-- User 와 ChatMessage 의 1 : N 의 관계 -->
+    <resultMap id="userWithMessages" type="User" extends="userMap">
+        <collection property="chatMessages" ofType="ChatMessage">
+            <id property="roomId" column="room_id"/>
+            <result property="sender" column="sender"/>
+            <result property="message" column="message"/>
+            <result property="type" column="type"/>
+            <result property="sendTime" column="send_time"/>
+        </collection>
+    </resultMap>
 
     <!-- 회원가입 유저데이터 저장 -->
     <insert id="save" parameterType="User" useGeneratedKeys="true" keyProperty="id">
@@ -59,4 +79,17 @@
         DELETE FROM users
         WHERE id = #{id}
     </delete>
+
+    <!-- 참여 중인 모든 채팅방 조회 -->
+    <select id="findUserWithChatRooms" resultMap="userWithChatRooms">
+        SELECT
+            u.*,
+            r.room_id,
+            r.room_name,
+            r.user_count,
+            r.created_at
+        FROM users u
+        LEFT JOIN chat_rooms r ON u.id = r.user_id
+        WHERE u.id = #{userId}
+    </select>
 </mapper>
