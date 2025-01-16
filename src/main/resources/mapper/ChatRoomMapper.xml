@@ -10,6 +10,17 @@
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
+    <!-- ChatRoom 와 ChatMessage 의 1 : N 의 관계 -->
+    <resultMap id="chatRoomWithChatMessages" type="ChatRoom" extends="chatRoomMap">
+        <collection property="chatMessages" ofType="ChatMessage">
+            <id property="roomId" column="room_id"/>
+            <result property="sender" column="sender"/>
+            <result property="message" column="message"/>
+            <result property="type" column="type"/>
+            <result property="sendTime" column="send_time"/>
+        </collection>
+    </resultMap>
+
     <!-- 채팅방 저장 -->
     <insert id="save" parameterType="ChatRoom" useGeneratedKeys="true" keyProperty="roomId">
         INSERT INTO chat_rooms (room_name, user_count, created_at)
