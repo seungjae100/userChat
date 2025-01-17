@@ -6,7 +6,6 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -45,26 +44,9 @@ public class JwtService {
         return refreshToken;
     }
 
-    private void saveRefreshToken(String refreshToken, String email) {
-        Token token = new Token();
-        token.setRefreshToken(refreshToken);
-        token.setEmail(email);
-        token.setCreateDate(LocalDateTime.now());
-        token.setExpiryDate(LocalDateTime.now()
-                .plusSeconds(jwtProperties.getRefreshTokenExpiration()));
-
+    // 토큰 삭제
+    public void invalidateToken(String email) {
         tokenMapper.deleteRefreshToken(email);
-        tokenMapper.saveRefreshToken(token);
-    }
-
-    // AccessToken 을 위한 쿠키 생성 메서드
-    public Cookie createAccessTokenCookie(String token) {
-        Cookie cookie = new Cookie("accessToken", token);
-        cookie.setHttpOnly(true); // JavaScript 에서 접근 불가
-        cookie.setSecure(false);  // HTTPS 만 사용 여부
-        cookie.setPath("/");      // 쿠키 경로 설정
-        cookie.setMaxAge((int) jwtProperties.getAccessTokenExpiration()); // 쿠키 만료 시간
-        return cookie;
     }
 
     // 토큰 유효성 검증
@@ -80,6 +62,7 @@ public class JwtService {
         }
     }
 
+    // 토큰에서 사용자 이메일 추출
     public String getUserEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -89,12 +72,28 @@ public class JwtService {
                 .getSubject();
     }
 
+    // RefreshToken 저장
+    private void saveRefreshToken(String refreshToken, String email) {
+        Token token = new Token();
+        token.setRefreshToken(refreshToken);
+        token.setEmail(email);
+        token.setCreateDate(LocalDateTime.now());
+        token.setExpiryDate(LocalDateTime.now()
+                .plusSeconds(jwtProperties.getRefreshTokenExpiration()));
+
+        tokenMapper.deleteRefreshToken(email);
+        tokenMapper.saveRefreshToken(token);
+    }
+    // JWT 비밀키 생성
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecretKey());
         return Keys.hmacShaKeyFor(keyBytes);
     }
-
+    // 만료 시간
     private Date getExpirationDate(long validityInSeconds) {
         return new Date(System.currentTimeMillis() + validityInSeconds * 1000);
     }
+
+
+
 }

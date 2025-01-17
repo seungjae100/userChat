@@ -8,10 +8,13 @@ import java.time.LocalDateTime;
 @Setter
 public class ChatMessage {
 
-    private Long id; // 메세지의 고유 아이디
-    private Long roomId; // 채팅방 번호
+    private Long messageId; // 메세지의 고유 아이디 (PK)
+
+    private Long roomId; // 채팅방 고유번호 (FK)
+    private Long userId; // 사용자 아이디 (FK)
+
     private String sender; // 메세지 보낸 사람
-    private String message; // 메세지
+    private String message; // 메세지 내용
     private MessageType type; // 메세지 타입;
     private LocalDateTime sendTime; // 메세지 보낸시간
 }

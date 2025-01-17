@@ -1,79 +1,41 @@
-//package com.web.userchat.controller;
-//
-//import com.web.userchat.model.LoginDTO;
-//import com.web.userchat.service.ChatService;
-//import com.web.userchat.service.UserService;
-//import jakarta.servlet.http.Cookie;
-//import jakarta.servlet.http.HttpServletResponse;
-//import jakarta.validation.Valid;
-//import com.web.userchat.model.User;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.stereotype.Controller;
-//import org.springframework.ui.Model;
-//import org.springframework.web.bind.annotation.*;
-//
-//import java.security.Principal;
-//
-//@Controller
-//@RequestMapping
-//public class UserController {
-//
-//    @Autowired
-//    private UserService userService;
-//    @Autowired
-//    private ChatService chatService;
-//
-//    @GetMapping("/users/register")
-//    public String registerForm(Model model) {
-//        model.addAttribute("user", new User());
-//        return "register";
-//    }
-//
-//    @PostMapping("/users/register")
-//    public String register(@Valid @ModelAttribute User user, HttpServletResponse response, Model model) {
-//        try {
-//            Cookie[] cookies = userService.register(user);
-//            for (Cookie cookie : cookies) {
-//                response.addCookie(cookie);
-//            }
-//            model.addAttribute("success", "회원가입이 완료되었습니다.");
-//            return "redirect:/users/login";
-//        } catch (IllegalArgumentException e) {
-//            model.addAttribute("error", e.getMessage());
-//            return "register";
-//        }
-//    }
-//
-//    @GetMapping("/users/login")
-//    public String loginForm(Model model) {
-//        model.addAttribute("LoginDTO", new LoginDTO());
-//        return "login";
-//    }
-//
-//    @PostMapping("/users/login")
-//    public String login(@Valid @ModelAttribute LoginDTO loginDTO, HttpServletResponse response, Model model) {
-//        try {
-//            // UserService 에서 로그인 처리 후 쿠키 배열을 반환받음 (Access Token과 Refresh Token)
-//            Cookie[] cookies = userService.login(loginDTO.getEmail(), loginDTO.getPassword());
-//            // 모든 쿠키를 응답에 추가
-//            for (Cookie cookie : cookies) {
-//                response.addCookie(cookie);
-//            }
-//
-//            return "redirect:/";
-//        } catch (IllegalArgumentException e) {
-//            model.addAttribute("error", e.getMessage());
-//            return "login";
-//        }
-//    }
-//
-//    @GetMapping("/logout")
-//    public String logout(Principal principal) {
-//        if (principal != null) {
-//            String currentEmail = principal.getName(); // 현재 로그인한 사용자의 이메일을 가져온다.
-//            userService.logoutUser(currentEmail);
-//            chatService.logoutUser(currentEmail);
-//        }
-//        return "redirect:/";
-//    }
-//}
+package com.web.userchat.controller;
+
+import com.web.userchat.model.User;
+import com.web.userchat.service.UserService;
+import com.web.userchat.util.CookieUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/users")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/register")
+    public String register(@RequestBody User user){
+        userService.register(user);
+        return "회원가입이 완료되었습니다.";
+    }
+
+    @PostMapping("/login")
+    public String login(@RequestParam String email, @RequestParam String password, HttpServletResponse response) {
+        Cookie[] cookies = userService.login(email, password);
+        CookieUtil.addCookie(response, cookies);
+        return "로그인 성공";
+    }
+
+    @DeleteMapping("/logout")
+    public String logout(@RequestParam String email) {
+        userService.logout(email);
+        return "로그아웃 되었습니다.";
+    }
+
+    @GetMapping("/{id}")
+    public User findById(@PathVariable Long id){
+        return userService.getUser(id);
+    }
+}

@@ -5,35 +5,36 @@
 
     <resultMap id="chatRoomMap" type="ChatRoom">
         <id property="roomId" column="room_Id"/>
+        <result property="userId" column="user_id"/>
         <result property="roomName" column="room_name"/>
         <result property="userCount" column="user_count"/>
         <result property="createdAt" column="created_at"/>
-    </resultMap>
-
-    <!-- ChatRoom 와 ChatMessage 의 1 : N 의 관계 -->
-    <resultMap id="chatRoomWithChatMessages" type="ChatRoom" extends="chatRoomMap">
-        <collection property="chatMessages" ofType="ChatMessage">
-            <id property="roomId" column="room_id"/>
-            <result property="sender" column="sender"/>
-            <result property="message" column="message"/>
-            <result property="type" column="type"/>
-            <result property="sendTime" column="send_time"/>
-        </collection>
+        <result property="lastMessageTime" column="last_message_time"/>
+        <result property="lastMessage" column="last_message"/>
     </resultMap>
 
     <!-- 채팅방 저장 -->
     <insert id="save" parameterType="ChatRoom" useGeneratedKeys="true" keyProperty="roomId">
-        INSERT INTO chat_rooms (room_name, user_count, created_at)
-        VALUES (#{roomName}, #{userCount}, #{createdAt})
+        INSERT INTO chat_rooms (
+                user_id,
+                room_name,
+                user_count,
+                created_at,
+                last_message_time,
+                last_message
+        ) VALUES (
+                  #{userId},
+                  #{roomName},
+                  #{userCount},
+                  #{createdAt},
+                  #{lastMessageTime},
+                  #{lastMessage}
+        )
     </insert>
 
     <!-- 채팅방 고유 아이디로 조회 -->
     <select id="findById" resultMap="chatRoomMap">
-        SELECT
-            room_id,
-            room_name,
-            created_at,
-            user_count
+        SELECT *
         FROM chat_rooms
         WHERE room_id = #{roomId}
     </select>
@@ -46,6 +47,21 @@
             created_at
         FROM chat_rooms
         ORDER BY created_at DESC
+    </select>
+
+    <!-- 참여 중인 모든 채팅방 조회 -->
+    <select id="findUserWithChatRooms" resultMap="chatRoomMap">
+        SELECT
+            r.room_id,
+            r.room_name,
+            r.user_count,
+            r.created_at,
+            r.last_message,
+            r.last_message_time
+        FROM users u
+                 LEFT JOIN chat_rooms r ON u.id = r.user_id
+        WHERE u.id = #{userId}
+        ORDER BY r.last_message_time DESC
     </select>
 
     <!-- 고유 아이디로 채팅방 유저 수를 수정 -->

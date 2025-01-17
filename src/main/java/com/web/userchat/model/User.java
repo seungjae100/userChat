@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 public class User {
 
-    private Long id; // 사용자 고유 아이디
+    private Long id; // 사용자 고유 아이디 (PK)
 
     private String username; // 사용자 이름
 
@@ -18,7 +18,7 @@ public class User {
 
     private String password; // 사용자 비밀번호
 
-    /* 1 대 다수의 관계*/
-    private List<ChatRoom> chatRooms;
-    private List<ChatMessage> chatMessages;
+    private int likeCount; // 사용자 좋아요 수
+
+
 }

@@ -13,6 +13,8 @@ public interface ChatRoomMapper {
 
     Optional<ChatRoom> findById(Long roomId); // 채팅방을 고유아이디로 조회한다.
 
+    List<ChatRoom> findUserWithChatRooms(Long userId); // 사용자의 채팅방 목록 조회
+
     List<ChatRoom> findAll(); // 채팅방 전체를 조회한다.
 
     void updateUserCount(Long roomId, int userCount); // 채팅방을 고유아이디를 식별하여 유저 수를 수정한다.

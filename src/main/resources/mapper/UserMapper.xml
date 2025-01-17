@@ -8,27 +8,7 @@
         <result property="email" column="email"/>
         <result property="username" column="username"/>
         <result property="password" column="password"/>
-    </resultMap>
-
-    <!-- User 와 ChatRoom 의 1 : N 의 관계 -->
-    <resultMap id="userWithChatRooms" type="User" extends="userMap">
-        <collection property="chatRooms" ofType="ChatRoom">
-            <id property="roomId" column="room_Id"/>
-            <result property="roomName" column="room_name"/>
-            <result property="userCount" column="user_count"/>
-            <result property="createdAt" column="created_at"/>
-        </collection>
-    </resultMap>
-
-    <!-- User 와 ChatMessage 의 1 : N 의 관계 -->
-    <resultMap id="userWithMessages" type="User" extends="userMap">
-        <collection property="chatMessages" ofType="ChatMessage">
-            <id property="roomId" column="room_id"/>
-            <result property="sender" column="sender"/>
-            <result property="message" column="message"/>
-            <result property="type" column="type"/>
-            <result property="sendTime" column="send_time"/>
-        </collection>
+        <result property="likeCount" column="like_count"/>
     </resultMap>
 
     <!-- 회원가입 유저데이터 저장 -->
@@ -80,16 +60,20 @@
         WHERE id = #{id}
     </delete>
 
-    <!-- 참여 중인 모든 채팅방 조회 -->
-    <select id="findUserWithChatRooms" resultMap="userWithChatRooms">
-        SELECT
-            u.*,
-            r.room_id,
-            r.room_name,
-            r.user_count,
-            r.created_at
-        FROM users u
-        LEFT JOIN chat_rooms r ON u.id = r.user_id
-        WHERE u.id = #{userId}
+
+
+    <!-- 좋아요 수 변동사항 업데이트 -->
+    <update id="updateLikeCount">
+        UPDATE users
+        SET like_count = like_count +
+                CASE WHEN #{increment} THEN 1 ELSE -1 END
+        WHERE id = #{userId}
+    </update>
+
+    <!-- 좋아요 수 많은 순위로 정렬 -->
+    <select id="findPopularUsers" resultMap="userMap">
+        SELECT * FROM users
+        ORDER BY like_count DESC
+        LIMIT #{limit}
     </select>
 </mapper>

@@ -26,7 +26,7 @@
     </insert>
 
     <delete id="deleteRefreshToken">
-        DELETE FROM refresh_tokens
+        DELETE FROM tokens
         WHERE email = #{email}
     </delete>
 

@@ -4,7 +4,9 @@
 <mapper namespace="com.web.userchat.mapper.ChatMessageMapper">
 
     <resultMap id="chatMessageMap" type="ChatMessage">
-        <id property="roomId" column="room_id"/>
+        <id property="messageId" column="message_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="roomId" column="room_id"/>
         <result property="sender" column="sender"/>
         <result property="message" column="message"/>
         <result property="type" column="type"/>
@@ -14,6 +16,8 @@
     <!-- 메세지 입력 시 저장 -->
     <insert id="save" parameterType="ChatMessage" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO chat_messages (
+                message_id,
+                user_id,
                 room_id,
                 sender,
                 message,
@@ -21,6 +25,8 @@
                 send_time
         ) VALUES (
                 #{roomId},
+                #{userId},
+                #{messageId},
                 #{sender},
                 #{message},
                 #{type},
