@@ -9,9 +9,7 @@ import java.time.LocalDateTime;
 public class ChatMessage {
 
     private Long messageId; // 메세지의 고유 아이디 (PK)
-
     private Long roomId; // 채팅방 고유번호 (FK)
-    private Long userId; // 사용자 아이디 (FK)
 
     private String sender; // 메세지 보낸 사람
     private String message; // 메세지 내용

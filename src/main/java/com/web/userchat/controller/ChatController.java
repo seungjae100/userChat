@@ -1,104 +1,57 @@
 package com.web.userchat.controller;
 
-import com.web.userchat.model.ChatMessage;
-import com.web.userchat.model.User;
+import com.web.userchat.dto.ChatRoomDTO;
+import com.web.userchat.model.ChatRoom;
 import com.web.userchat.service.ChatService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
-@Controller
+@RestController
+@RequestMapping("/chatRooms")
+@RequiredArgsConstructor
 public class ChatController {
 
     private final ChatService chatService;
-
-    @Autowired
-    public ChatController(ChatService chatService) {
-        this.chatService = chatService;
+    // 채팅방 생성
+    @PostMapping("/create")
+    public ResponseEntity<ChatRoomDTO> createChatRoom(
+            @RequestParam Long user1Id,
+            @RequestParam(required = false) Long user2Id,
+            @RequestParam String roomName
+    ) {
+        ChatRoomDTO chatRoom = chatService.createChatRoom(user1Id, user2Id, roomName);
+        return ResponseEntity.ok(chatRoom);
     }
 
-    // 기존 채팅룸 사용자 조회 메서드 유지
-    @GetMapping("/chatRoom")
-    public String getAllUsers(Principal principal, Model model) {
-        String currentEmail = principal.getName();
-        User currentUser = chatService.getCurrentUser(currentEmail);
-        chatService.loginUser(currentUser.getUsername());
-
-        model.addAllAttributes(chatService.getCommonModelAttributes(currentEmail));
-        model.addAttribute("allUsers", chatService.getAllUserExceptCurrentUser(currentUser.getUsername()));
-        model.addAttribute("onlineUsers", chatService.getOnlineUsers());
-
-
-        return "chatRoom";
+    // 채팅방 그룹으로 업데이트
+    @PostMapping("/{roomId}/update-group-status")
+    public ResponseEntity<String> updateGroupChatStatus(@PathVariable Long roomId) {
+        chatService.updateGroupChatStatus(roomId);
+        return ResponseEntity.ok("채팅방이 그룹 채팅으로 업데이트 되었습니다.");
     }
 
-    // 기존 채팅방 ID 생성 메서드 유지
-    @GetMapping("/api/chatRoom/getId")
-    @ResponseBody
-    public ResponseEntity<String> getChatRoomId(
-            @RequestParam String user1Email,
-            @RequestParam String user2Email) {
-        return ResponseEntity.ok(chatService.getChatRoomId(user1Email, user2Email));
+    // 사용자가 참여 중인 채팅방 목록 조회
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ChatRoomDTO>> getUserChatRooms(@PathVariable Long userId) {
+        List<ChatRoomDTO> chatRooms = chatService.getUserChatRooms(userId);
+        return ResponseEntity.ok(chatRooms);
     }
 
-    @PostMapping("/chat/enter")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> enterChatRoom(
-            @RequestParam String chatRoomId,
-            Principal principal) {
-        return ResponseEntity.ok(chatService.enterChatRoom(chatRoomId, principal.getName()));
+    // 특정 채팅방 조회
+    @GetMapping("/{roomId}")
+    public ResponseEntity<ChatRoom> getChatRoomById(@PathVariable Long roomId) {
+        Optional<ChatRoom> chatRoom = chatService.getChatRoomById(roomId);
+        return chatRoom.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-
-    @PostMapping("/chat/leave")
-    @ResponseBody
-    public ResponseEntity<String> leaveChatRoom(
-            @RequestParam String chatRoomId,
-            Principal principal) {
-        return ResponseEntity.ok(chatService.leaveChatRoom(chatRoomId, principal.getName()));
-    }
-
-
-    // 기존 메시지 조회 메서드 유지
-    @GetMapping("/api/chatRoom/{chatRoomId}/messages")
-    @ResponseBody
-    public ResponseEntity<List<ChatMessage>> getChatMessages(
-            @PathVariable String chatRoomId) {
-        return ResponseEntity.ok(chatService.getChatMessages(chatRoomId));
-    }
-
-    // WebSocket 메시지 처리 메서드 수정
-    @MessageMapping("/chat/{chatRoomId}")
-    @SendTo("/topic/chat/{chatRoomId}")
-    public ChatMessage handleChatMessage(
-            @DestinationVariable String chatRoomId,
-            @Payload ChatMessage chatMessage,
-            Principal principal) {
-        return chatService.handleChatMessage(chatRoomId, chatMessage, principal.getName());
-    }
-
-
-    // 기존 사용자 검색 메서드 유지
-    @GetMapping("/users/search")
-    public String searchUsers(
-            @RequestParam("query") String query,
-            Principal principal,
-            Model model) {
-        String currentEmail = principal.getName();
-        User currentUser = chatService.getCurrentUser(currentEmail);
-
-        model.addAllAttributes(chatService.getCommonModelAttributes(currentEmail));
-        model.addAttribute("allUser", chatService.searchUsers(query, currentUser.getUsername()));
-
-        return "chatRoom";
+    // 채팅방 삭제 (나가기)
+    @DeleteMapping("/{roomId}")
+    public ResponseEntity<String> deleteChatRoom(@PathVariable Long roomId) {
+        chatService.deleteChatRoom(roomId);
+        return ResponseEntity.ok("채팅방이 삭제되었습니다.");
     }
 }

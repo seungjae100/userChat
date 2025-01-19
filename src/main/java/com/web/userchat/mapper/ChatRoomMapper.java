@@ -2,22 +2,29 @@ package com.web.userchat.mapper;
 
 import com.web.userchat.model.ChatRoom;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 @Mapper
 public interface ChatRoomMapper {
 
-    void save(ChatRoom chatRoom); // 채팅방을 저장한다.
+    // 채팅방을 생성
+    void create(ChatRoom chatRoom);
 
-    Optional<ChatRoom> findById(Long roomId); // 채팅방을 고유아이디로 조회한다.
+    // 채팅방 삭제
+    void deleteChatRoom(@Param("roomId") Long roomId);
 
-    List<ChatRoom> findUserWithChatRooms(Long userId); // 사용자의 채팅방 목록 조회
+    // 채팅방 조회
+    ChatRoom findById(@Param("roomId") Long roomId);
 
-    List<ChatRoom> findAll(); // 채팅방 전체를 조회한다.
+    // 채팅방 업데이트 (그룹 여부의 변경)
+    void update(ChatRoom chatRoom);
 
-    void updateUserCount(Long roomId, int userCount); // 채팅방을 고유아이디를 식별하여 유저 수를 수정한다.
+    // 1:1 채팅 중복 방지 조회
+    Long findExistingChatRoom(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
 
-    void delete(Long roomId); // 채팅방의 고유아이디로 삭제한다.
+    // 사용자가 참여 중인 채팅방 조회
+    List<ChatRoom> findChatRoomsByUserId(@Param("userId") Long userId);
+
 }

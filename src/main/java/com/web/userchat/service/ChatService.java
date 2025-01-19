@@ -1,20 +1,13 @@
 package com.web.userchat.service;
 
-import com.web.userchat.mapper.ChatMessageMapper;
+import com.web.userchat.dto.ChatRoomDTO;
 import com.web.userchat.mapper.ChatRoomMapper;
-import com.web.userchat.mapper.UserMapper;
-import com.web.userchat.model.ChatMessage;
+import com.web.userchat.mapper.ChatRoomParticipantMapper;
 import com.web.userchat.model.ChatRoom;
-import com.web.userchat.model.User;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,156 +15,67 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChatService {
 
-    private final Set<String> onlineUsers = ConcurrentHashMap.newKeySet();
-    private final ChatMessageMapper chatMessageMapper;
-    private final UserMapper userMapper;
-    private final SimpMessagingTemplate messagingTemplate;
     private final ChatRoomMapper chatRoomMapper;
+    private final ChatRoomParticipantMapper chatRoomParticipantMapper;
 
-
-
-    // 채팅방 ID 생성 및 관리 관련
-    public String getChatRoomId(String user1Email, String user2Email) {
-        String normalizedUser1 = user1Email.trim().toLowerCase();
-        String normalizedUser2 = user2Email.trim().toLowerCase();
-
-        String sortedUsers = normalizedUser1.compareTo(normalizedUser2) < 0
-                ? normalizedUser1 + "_" + normalizedUser2
-                : normalizedUser2 + "_" + normalizedUser1;
-
-        String chatRoomId = DigestUtils.sha256Hex(sortedUsers);
-
-        chatRoomRepository.findById(chatRoomId)
-                .orElseGet(() -> createChatRoom(
-                        String.format("Chat between %s and %s", normalizedUser1, normalizedUser2),
-                        chatRoomId
-                ));
-
-        return chatRoomId;
-    }
-
-    public ChatRoom createChatRoom(String chatRoomName, String chatRoomId) {
-        ChatRoom chatRoom = new ChatRoom(chatRoomId, chatRoomName);
-        chatRoom.setUserCount(2);
-        return chatRoomRepository.save(chatRoom);
-    }
-
-    // 메시지 처리 관련
-    public ChatMessage handleChatMessage(String chatRoomId, ChatMessage chatMessage, String principalName) {
-        ChatRoom chatRoom = getChatRoomOrThrow(chatRoomId);
-        String username = getUsernameFromEmail(principalName);
-
-        chatMessage.setChatRoom(chatRoom);
-        chatMessage.setSender(username);
-        chatMessage.setTimestamp(LocalDateTime.now());
-
-        return saveMessage(chatMessage);
-    }
-
-    public ChatMessage saveMessage(ChatMessage chatMessage) {
-        if (chatMessage == null) {
-            throw new IllegalArgumentException("채팅메세지가 null 일 수 없습니다.");
-        }
-        return chatMessageRepository.save(chatMessage);
-    }
-
-    public List<ChatMessage> getChatMessages(String chatRoomId) {
-        ChatRoom chatRoom = getChatRoomOrThrow(chatRoomId);
-        return chatMessageRepository.findByChatRoom(chatRoom);
-    }
-
-    // 사용자 관리 관련
-    public User getCurrentUser(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자의 이메일을 찾을 수 없습니다." + email));
-    }
-
-    public Map<String, Object> getCommonModelAttributes(String email) {
-        User cureentUser = getCurrentUser(email);
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("currentUsername", cureentUser.getUsername());
-        attributes.put("currentUser", cureentUser);
-        attributes.put("onlineUsers", getOnlineUsers());
-
-        return attributes;
-    }
-
-    public List<User> getAllUserExceptCurrentUser(String currentUsername) {
-        List<User> allUsers = userRepository.findAll();
-
-        List<User> filteredUsers = allUsers.stream()
-                        .filter(user -> !user.getUsername().equals(currentUsername))
-                        .collect(Collectors.toList());
-        return filteredUsers;
-    }
-
-    public List<User> searchUsers(String query, String currentUsername) {
-        if (query == null || query.isEmpty()) {
-            return getAllUserExceptCurrentUser(currentUsername);
-        }
-        return userRepository.findByUsernameContaining(query).stream()
-                .filter(user -> !user.getUsername().equals(currentUsername))
-                .collect(Collectors.toList());
-    }
-
-    // 채팅 입/퇴장 관련
-    public Map<String, Object> enterChatRoom(String chatRoomId, String username) {
-        ChatRoom chatRoom = getChatRoomOrThrow(chatRoomId);
-        String normalizedUsername = username.split("@")[0];
-
-        boolean isReturningUser = chatRoom.getMessageList().stream()
-                .anyMatch(message ->  {
-                    String messageSender = message.getSender().split("@")[0];
-                    return messageSender.equals(normalizedUsername);
-                });
-
-        if (chatRoom.getUserCount() < 2) {
-            chatRoom.setUserCount(chatRoom.getUserCount() + 1);
-            chatRoomRepository.save(chatRoom);
+    // 채팅방 생성
+    public ChatRoomDTO createChatRoom(Long user1Id, Long user2Id, String roomName) {
+        // 1:1 채팅 중복 체크
+        Long existingRoomId = chatRoomMapper.findExistingChatRoom(user1Id, user2Id);
+        if (existingRoomId != null) {
+            ChatRoom existingRoom = chatRoomMapper.findById(existingRoomId);
+            return mapToDTO(existingRoom); // 중복된 방 반환
         }
 
-        return Map.of(
-                "isReturningUser", isReturningUser,
-                "userCount", chatRoom.getUserCount()
-        );
+        // 새로운 채팅방 생성
+        ChatRoom newChatRoom = new ChatRoom();
+        newChatRoom.setRoomName(roomName);
+        newChatRoom.setGroup(false); // 기본적으로 1:1 채팅
+        chatRoomMapper.create(newChatRoom);
+
+        // 참여자 추가
+        chatRoomParticipantMapper.addParticipant(newChatRoom.getRoomId(), user1Id);
+        chatRoomParticipantMapper.addParticipant(newChatRoom.getRoomId(), user2Id);
+        return mapToDTO(newChatRoom);
     }
 
-    public String leaveChatRoom(String chatRoomId, String username) {
-        ChatRoom chatRoom = getChatRoomOrThrow(chatRoomId);
-
-        if (chatRoom.getUserCount() > 0) {
-            chatRoom.setUserCount(chatRoom.getUserCount() - 1);
-            chatRoomRepository.save(chatRoom);
+    // 채팅방을 그룹 채팅방으로 전환
+    public void updateGroupChatStatus(Long roomId) {
+        int participantCount = chatRoomParticipantMapper.countParticipantsByRoomId(roomId);
+        if (participantCount >= 3) {
+            ChatRoom chatRoom = chatRoomMapper.findById(roomId);
+            if (chatRoom != null && !chatRoom.isGroup()) {
+                chatRoom.setGroup(true);
+                chatRoomMapper.update(chatRoom);
+            }
         }
-        if (chatRoom.getUserCount() == 0) {
-            chatRoomRepository.delete(chatRoom);
-            return "채팅방이 삭제되었습니다.";
-        }
-        return username + "님이 채팅방을 나갔습니다.";
     }
 
-    // 유틸리티 메서드
-    private ChatRoom getChatRoomOrThrow(String chatRoomId) {
-        return chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+    // 채팅방 조회
+    public Optional<ChatRoom> getChatRoomById(Long roomId) {
+        return Optional.ofNullable(chatRoomMapper.findById(roomId));
     }
 
-    private String getUsernameFromEmail(String email) {
-        return userRepository.findByEmail(email)
-                .map(User::getUsername)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    // 사용자가 참여 중인 채팅방 목록 조회
+    public List<ChatRoomDTO> getUserChatRooms(Long userId) {
+        List<ChatRoom> chatRooms = chatRoomMapper.findChatRoomsByUserId(userId);
+        return chatRooms.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // 온라인 사용자 관리
-    public void loginUser(String username) {
-        onlineUsers.add(username);
+    // 채팅방 삭제
+    public void deleteChatRoom(Long roomId) {
+        chatRoomMapper.deleteChatRoom(roomId);
     }
 
-    public void logoutUser(String username) {
-        onlineUsers.remove(username);
+    private ChatRoomDTO mapToDTO(ChatRoom chatRoom) {
+        ChatRoomDTO dto = new ChatRoomDTO();
+        dto.setRoomId(chatRoom.getRoomId());
+        dto.setRoomName(chatRoom.getRoomName());
+        dto.setLastMessage(chatRoom.getLastMessage());
+        dto.setLastMessageTime(chatRoom.getLastMessageTime());
+
+        return dto;
     }
 
-    public Set<String> getOnlineUsers() {
-        return onlineUsers;
-    }
+
 }

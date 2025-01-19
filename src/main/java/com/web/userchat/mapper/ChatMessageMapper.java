@@ -13,4 +13,7 @@ public interface ChatMessageMapper {
     List<ChatMessage> findByRoomId(Long roomId); // 채팅방 고유 아이디로 조회한다.
 
     void deleteByRoomId(Long roomId); // 채팅방 고유 아이디로 삭제한다.
+
+    void deleteByUser(String sender); // 특정 사용자가 보낸 메세지 삭제
+
 }

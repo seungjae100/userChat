@@ -5,7 +5,6 @@
 
     <resultMap id="chatMessageMap" type="ChatMessage">
         <id property="messageId" column="message_id"/>
-        <result property="userId" column="user_id"/>
         <result property="roomId" column="room_id"/>
         <result property="sender" column="sender"/>
         <result property="message" column="message"/>
@@ -16,8 +15,6 @@
     <!-- 메세지 입력 시 저장 -->
     <insert id="save" parameterType="ChatMessage" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO chat_messages (
-                message_id,
-                user_id,
                 room_id,
                 sender,
                 message,
@@ -25,8 +22,6 @@
                 send_time
         ) VALUES (
                 #{roomId},
-                #{userId},
-                #{messageId},
                 #{sender},
                 #{message},
                 #{type},
@@ -37,7 +32,7 @@
     <!-- 채팅방 고유아이디로 메세지 조회 -->
     <select id="findByRoomId" resultMap="chatMessageMap">
         SELECT
-            id,
+            message_id,
             room_id,
             sender,
             message,
@@ -52,6 +47,12 @@
     <delete id="deleteByRoomId">
         DELETE FROM chat_messages
         WHERE room_id = #{roomId}
+    </delete>
+
+    <!-- 특정 사용자가 보낸 메세지 삭제 -->
+    <delete id="deleteByUser">
+        DELETE FROM chat_messages
+        WHERE sender = #{sender}
     </delete>
 
 </mapper>

@@ -5,9 +5,8 @@
 
     <resultMap id="chatRoomMap" type="ChatRoom">
         <id property="roomId" column="room_Id"/>
-        <result property="userId" column="user_id"/>
         <result property="roomName" column="room_name"/>
-        <result property="userCount" column="user_count"/>
+        <result property="isGroup" column="is_group"/>
         <result property="createdAt" column="created_at"/>
         <result property="lastMessageTime" column="last_message_time"/>
         <result property="lastMessage" column="last_message"/>
@@ -18,62 +17,59 @@
         INSERT INTO chat_rooms (
                 user_id,
                 room_name,
-                user_count,
-                created_at,
-                last_message_time,
-                last_message
+                is_group,
+                created_at
         ) VALUES (
                   #{userId},
                   #{roomName},
-                  #{userCount},
-                  #{createdAt},
-                  #{lastMessageTime},
-                  #{lastMessage}
+                  #{isGroup},
+                  CURRENT_TIMESTAMP
         )
     </insert>
+
+    <!-- 채팅방 삭제 -->
+    <delete id="deleteChatRoom">
+        DELETE FROM chat_rooms
+        WHERE room_id = #{roomId};
+    </delete>
 
     <!-- 채팅방 고유 아이디로 조회 -->
     <select id="findById" resultMap="chatRoomMap">
         SELECT *
         FROM chat_rooms
-        WHERE room_id = #{roomId}
+        WHERE room_id = #{roomId};
     </select>
 
-    <!-- 모든 채팅방을 조회 -->
-    <select id="findAll" resultMap="chatRoomMap">
-        SELECT
-            room_id,
-            room_name,
-            created_at
-        FROM chat_rooms
-        ORDER BY created_at DESC
-    </select>
-
-    <!-- 참여 중인 모든 채팅방 조회 -->
-    <select id="findUserWithChatRooms" resultMap="chatRoomMap">
-        SELECT
-            r.room_id,
-            r.room_name,
-            r.user_count,
-            r.created_at,
-            r.last_message,
-            r.last_message_time
-        FROM users u
-                 LEFT JOIN chat_rooms r ON u.id = r.user_id
-        WHERE u.id = #{userId}
-        ORDER BY r.last_message_time DESC
-    </select>
-
-    <!-- 고유 아이디로 채팅방 유저 수를 수정 -->
-    <update id="updateUserCount">
+    <!-- 채팅방 없데이트 -->
+    <update id="update" parameterType="ChatRoom">
         UPDATE chat_rooms
-        SET user_count = #{userCount}
-        WHERE room_id = #{roomId}
+        SET room_name = #{roomName},
+            is_group = #{isGroup},
+            last_message = #{lastMessage},
+            last_message_time = #{lastMessageTime}
+        WHERE room_id = #{roomId};
     </update>
 
-    <!-- 채팅방 고유아이디로 삭제 -->
-    <delete id="delete">
-        DELETE FROM chat_rooms
-        WHERE room_id = #{roomId}
-    </delete>
+    <!-- 1 : 1 사용자가 참여 중인 채팅방 조회 -->
+    <select id="findExistingChatRoom" resultType="Long">
+        SELECT r.room_id
+        FROM chat_rooms r
+        JOIN chat_room_participants p1 ON r.room_id = p1.room_id
+        JOIN chat_room_participants p2 ON r.room_od = p2.room_id
+        WHERE r.is_group = FALSE
+            AND p1.user_id = #{user1Id}
+            AND p2.user_id = #{user2Id};
+    </select>
+
+    <!-- 사용자가 참여 중인 채팅방 조회 -->
+    <select id="findChatRoomByUserId" resultMap="chatRoomMap">
+        SELECT r.room_id, r.room_name, r.is_group, r.created_at, r.last_message, r.last_message_time
+        FROM chat_rooms r
+        JOIN chat_room_participants p ON r.room_id = p.room_id
+        WHERE p.user_id = #{userId}
+        ORDER BY r.last_meesage_time DESC;
+    </select>
+
+
+
 </mapper>

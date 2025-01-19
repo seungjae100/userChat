@@ -1,6 +1,5 @@
 package com.web.userchat.mapper;
 
-import com.web.userchat.model.ChatRoom;
 import com.web.userchat.model.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -18,8 +17,6 @@ public interface UserMapper {
     Optional<User> findById(Long id); // 회원 고유 아이디로 조회한다.
 
     List<User> findAll(); // 모든 사용자를 조회한다.
-
-
 
     void update(User user); // 회원 정보를 수정한다.
 
