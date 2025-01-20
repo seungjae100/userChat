@@ -15,6 +15,9 @@ public interface ChatRoomParticipantMapper {
     // 활성 상태 사용자 조회
     List<User> findActiveParticipantsByRoomId(@Param("roomId") Long roomId);
 
+    // 특정 채팅방의 참여자 삭제
+    void deleteParticipantsByRoomId(Long roomId);
+
     // 채팅방에 사용자 추가하기
     void addParticipant(@Param("roomId") Long roomId, @Param("userId") Long userId);
 

@@ -23,6 +23,13 @@
         WHERE p.room_id = #{roomId} AND p.is_active = TRUE
     </select>
 
+    <!-- 특정 채팅방의 참여자 삭제 -->
+    <delete id="deleteParticipantsByRoomId">
+        DELETE
+        FROM chat_room_participants
+        WHERE room_id = #{roomId};
+    </delete>
+
     <!-- 채팅방에 사용자 추가 -->
     <insert id="addParticipant">
         INSERT INTO chat_room_participants (room_id, user_id, is_active)

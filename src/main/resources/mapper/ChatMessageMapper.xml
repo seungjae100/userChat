@@ -49,10 +49,5 @@
         WHERE room_id = #{roomId}
     </delete>
 
-    <!-- 특정 사용자가 보낸 메세지 삭제 -->
-    <delete id="deleteByUser">
-        DELETE FROM chat_messages
-        WHERE sender = #{sender}
-    </delete>
 
 </mapper>

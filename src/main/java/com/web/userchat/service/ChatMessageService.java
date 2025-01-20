@@ -39,11 +39,6 @@ public class ChatMessageService {
         chatMessageMapper.deleteByRoomId(roomId);
     }
 
-    // 특정 사용자가 보낸 모든 메세지 삭제
-    public void deleteMessageByUser(String sender) {
-        chatMessageMapper.deleteByUser(sender);
-    }
-
     private ChatMessageDTO mapToDTO(ChatMessage chatMessage) {
         ChatMessageDTO dto = new ChatMessageDTO();
         dto.setMessageId(chatMessage.getMessageId());

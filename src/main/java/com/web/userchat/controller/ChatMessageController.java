@@ -46,9 +46,4 @@ public class ChatMessageController {
     public void deleteMessagesByRoomId(@PathVariable Long roomId) {
         chatMessageService.deleteMessageByRoomId(roomId);
     }
-
-    // 메세지 보낸 사용자 기반으로 메세지 삭제
-    public void deleteMessagesByUser(@PathVariable String sender) {
-        chatMessageService.deleteMessageByUser(sender);
-    }
 }

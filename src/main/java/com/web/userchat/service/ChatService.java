@@ -1,6 +1,7 @@
 package com.web.userchat.service;
 
 import com.web.userchat.dto.ChatRoomDTO;
+import com.web.userchat.mapper.ChatMessageMapper;
 import com.web.userchat.mapper.ChatRoomMapper;
 import com.web.userchat.mapper.ChatRoomParticipantMapper;
 import com.web.userchat.model.ChatRoom;
@@ -17,6 +18,7 @@ public class ChatService {
 
     private final ChatRoomMapper chatRoomMapper;
     private final ChatRoomParticipantMapper chatRoomParticipantMapper;
+    private final ChatMessageMapper chatMessageMapper;
 
     // 채팅방 생성
     public ChatRoomDTO createChatRoom(Long user1Id, Long user2Id, String roomName) {
@@ -62,8 +64,13 @@ public class ChatService {
         return chatRooms.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // 채팅방 삭제
+    // 채팅방 삭제 (참여자와 메세지 모두 삭제)
     public void deleteChatRoom(Long roomId) {
+        // 참여자 정보 삭제
+        chatRoomParticipantMapper.deleteParticipantsByRoomId(roomId);
+        // 메세지 삭제
+        chatMessageMapper.deleteByRoomId(roomId);
+        // 채팅방 삭제
         chatRoomMapper.deleteChatRoom(roomId);
     }
 
