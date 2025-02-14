@@ -67,10 +67,9 @@ public class ChatService {
     // 메시지 처리 관련
     public ChatMessage handleChatMessage(String chatRoomId, ChatMessage chatMessage, String principalName) {
         ChatRoom chatRoom = getChatRoomOrThrow(chatRoomId);
-        String username = getUsernameFromEmail(principalName);
 
         chatMessage.setChatRoom(chatRoom);
-        chatMessage.setSender(username);
+        chatMessage.setSender(principalName);
         chatMessage.setTimestamp(LocalDateTime.now());
 
         return saveMessage(chatMessage);
@@ -125,13 +124,9 @@ public class ChatService {
     // 채팅 입/퇴장 관련
     public Map<String, Object> enterChatRoom(String chatRoomId, String username) {
         ChatRoom chatRoom = getChatRoomOrThrow(chatRoomId);
-        String normalizedUsername = username.split("@")[0];
 
         boolean isReturningUser = chatRoom.getMessageList().stream()
-                .anyMatch(message ->  {
-                    String messageSender = message.getSender().split("@")[0];
-                    return messageSender.equals(normalizedUsername);
-                });
+                .anyMatch(message -> message.getSender().equals(username));
 
         if (chatRoom.getUserCount() < 2) {
             chatRoom.setUserCount(chatRoom.getUserCount() + 1);

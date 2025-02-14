@@ -80,7 +80,11 @@ public class ChatController {
             @DestinationVariable String chatRoomId,
             @Payload ChatMessage chatMessage,
             Principal principal) {
-        return chatService.handleChatMessage(chatRoomId, chatMessage, principal.getName());
+
+        String senderEmail = principal.getName();
+        chatMessage.setSender(senderEmail);
+
+        return chatService.handleChatMessage(chatRoomId, chatMessage, senderEmail);
     }
 
 
