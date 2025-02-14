@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let lastSender = null; // 마지막 메시지를 보낸 사용자의 이메일 저장
 
         function showMessageOutput(message) {
-            const isSentByMe = message.sender === currentEmail || message.sender === currentEmail.split('@')[0];
+            const isSentByMe = message.sender.trim().toLowerCase() === currentEmail.trim().toLowerCase();
             const messageDate = new Date(message.timestamp);
             const formattedDate = messageDate.toLocaleDateString('ko-KR', {
                 year: 'numeric',

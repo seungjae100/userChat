@@ -3,6 +3,7 @@ package com.web.userchat.controller;
 import com.web.userchat.model.ChatMessage;
 import com.web.userchat.model.User;
 import com.web.userchat.service.ChatService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -17,14 +18,10 @@ import java.security.Principal;
 import java.util.*;
 
 @Controller
+@RequiredArgsConstructor
 public class ChatController {
 
     private final ChatService chatService;
-
-    @Autowired
-    public ChatController(ChatService chatService) {
-        this.chatService = chatService;
-    }
 
     // 기존 채팅룸 사용자 조회 메서드 유지
     @GetMapping("/chatRoom")
@@ -83,7 +80,11 @@ public class ChatController {
             @DestinationVariable String chatRoomId,
             @Payload ChatMessage chatMessage,
             Principal principal) {
-        return chatService.handleChatMessage(chatRoomId, chatMessage, principal.getName());
+
+        String senderEmail = principal.getName();
+        chatMessage.setSender(senderEmail);
+
+        return chatService.handleChatMessage(chatRoomId, chatMessage, senderEmail);
     }
 
 
