@@ -7,6 +7,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import com.web.userchat.model.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,12 +17,11 @@ import java.security.Principal;
 
 @Controller
 @RequestMapping
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private ChatService chatService;
+    private final UserService userService;
+    private final ChatService chatService;
 
     @GetMapping("/users/register")
     public String registerForm(Model model) {
