@@ -14,19 +14,6 @@ body {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
 }
 
-.chat-image {
-    flex: 3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid #e0e0e0;
-}
-
-.chat-image p {
-    font-size: 24px;
-    color: #333;
-    text-align: center;
-}
 
 .login-container {
     flex: 1;
@@ -37,11 +24,21 @@ body {
     padding: 20px;
 }
 
-.logo h1 {
-    font-size: 32px;
+.welcome-text {
+    font-size: 36px;
     font-weight: bold;
-    color: #333;
+    color: #007bff;
+    text-align: center;
+    margin-bottom: 10px;
+    animation: fadeIn 1.2s ease-in-out;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #555;
+    text-align: center;
     margin-bottom: 40px;
+    animation: fadeIn 1.5s ease-in-out;
 }
 
 .user-link {
