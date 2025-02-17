@@ -90,15 +90,13 @@ public class ChatController {
 
     // 기존 사용자 검색 메서드 유지
     @GetMapping("/users/search")
-    public String searchUsers(
-            @RequestParam("query") String query,
-            Principal principal,
-            Model model) {
+    public String searchUsers(@RequestParam("query") String query, Principal principal, Model model) {
         String currentEmail = principal.getName();
         User currentUser = chatService.getCurrentUser(currentEmail);
+        List<User> searchedUsers = chatService.searchUsers(query, currentUser.getUsername());
 
         model.addAllAttributes(chatService.getCommonModelAttributes(currentEmail));
-        model.addAttribute("allUser", chatService.searchUsers(query, currentUser.getUsername()));
+        model.addAttribute("allUsers", searchedUsers);
 
         return "chatRoom";
     }
