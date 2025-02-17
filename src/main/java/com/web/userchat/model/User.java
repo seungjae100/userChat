@@ -28,5 +28,12 @@ public class User {
     @NotBlank(message = "비밀번호를 입력하세요")
     private String password;
 
-
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }
