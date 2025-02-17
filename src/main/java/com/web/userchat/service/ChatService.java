@@ -116,9 +116,11 @@ public class ChatService {
         if (query == null || query.isEmpty()) {
             return getAllUserExceptCurrentUser(currentUsername);
         }
-        return userRepository.findByUsernameContaining(query).stream()
+        List<User> result = userRepository.findByUsernameContaining(query).stream()
                 .filter(user -> !user.getUsername().equals(currentUsername))
                 .collect(Collectors.toList());
+
+        return result;
     }
 
     // 채팅 입/퇴장 관련
