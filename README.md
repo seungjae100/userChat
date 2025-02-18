@@ -30,6 +30,7 @@
 ![입장](https://github.com/user-attachments/assets/277f164e-716f-439f-b997-49a3ad1dc9a6)
 - 채팅
 ---
+![사용자검색](https://github.com/user-attachments/assets/c792b645-5cb7-4393-86b2-f84cf5b20cd5)
 ![채팅](https://github.com/user-attachments/assets/c96018a7-256a-4921-9117-8c8a3b6cf9d0)
 ![채팅2](https://github.com/user-attachments/assets/af8de569-566a-41d7-bc68-aef5df991f66)
 ![채팅방나가기](https://github.com/user-attachments/assets/54294dc4-210e-4c6f-978f-e3fc4c579939)
